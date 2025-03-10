@@ -12,15 +12,23 @@
     ports:
       - "8000:8000"
     environment:
-      - PYTHONUNBUFFERED=1  # Ensures logs are streamed immediately
-      - TRANSFORMERS_CACHE=/root/.cache/huggingface  # Explicitly set cache location
-      - TRANSFORMERS_OFFLINE=0  # Allow online model fetching
-    command: uvicorn deepseek_api:app --host 0.0.0.0 --port 8000 --reload --log-level info
-    #volumes:
-      #- ./DeepSeek/offload_folder:/app/offload_folder:rw  # Explicitly set read-write permissions
-      #- ./DeepSeek/ai_images:/root/.cache/huggingface:rw  # Cache for model downloads
+      - PYTHONUNBUFFERED=1
+      - TRANSFORMERS_OFFLINE=0
+      - OMP_NUM_THREADS=6
+      - MKL_NUM_THREADS=6
+      - MALLOC_TRIM_THRESHOLD_=0
+      - TOKENIZERS_PARALLELISM=true
+    volumes:
+      - ./model_cache:/root/.cache/huggingface  # Cache the model
+    command: uvicorn deepseek_api:app --host 0.0.0.0 --port 8000 --log-level info --timeout-keep-alive 120
     networks:
       - my_network
+    deploy:
+      resources:
+        limits:
+          cpus: '7'
+        reservations:
+          cpus: '6'
 networks:
   my_network:
     driver: bridge
