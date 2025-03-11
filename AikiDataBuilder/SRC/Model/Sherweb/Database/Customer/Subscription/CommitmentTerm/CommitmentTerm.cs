@@ -1,6 +1,6 @@
 ﻿using AikiDataBuilder.Model.Sherweb.Database.Enumerators;
 
-namespace AikiDataBuilder.Model.Sherweb.Database;
+namespace AikiDataBuilder.Model.Sherweb.Database.Customer.Subscription.CommitmentTerm;
 
 /// <summary>
 /// Part of Subscription

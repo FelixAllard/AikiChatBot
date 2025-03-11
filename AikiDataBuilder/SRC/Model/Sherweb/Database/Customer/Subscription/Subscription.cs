@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace AikiDataBuilder.Model.Sherweb.Database;
+namespace AikiDataBuilder.Model.Sherweb.Database.Customer.Subscription;
 
 public class Subscription
 {
@@ -12,5 +12,5 @@ public class Subscription
     private int Quantity { get; set; }
     private string BillingCycle { get; set; }
     private string PurchaseDate { get; set; }
-    private CommitmentTerm CommitmentTerm { get; set; }
+    private CommitmentTerm.CommitmentTerm CommitmentTerm { get; set; }
 }

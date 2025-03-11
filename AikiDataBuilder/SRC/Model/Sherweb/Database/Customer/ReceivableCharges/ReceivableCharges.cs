@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace AikiDataBuilder.Model.Sherweb.Database;
+namespace AikiDataBuilder.Model.Sherweb.Database.Customer.ReceivableCharges;
 
 public class ReceivableCharges
 {

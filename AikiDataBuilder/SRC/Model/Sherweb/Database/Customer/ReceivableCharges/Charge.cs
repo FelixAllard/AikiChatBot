@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using AikiDataBuilder.Model.Sherweb.Database.Enumerators;
 
-namespace AikiDataBuilder.Model.Sherweb.Database;
+namespace AikiDataBuilder.Model.Sherweb.Database.Customer.ReceivableCharges;
 
 /// <summary>
 /// A product is constituted of one or multiple charges.

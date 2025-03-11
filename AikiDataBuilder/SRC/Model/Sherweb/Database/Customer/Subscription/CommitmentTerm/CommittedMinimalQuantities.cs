@@ -1,4 +1,4 @@
-﻿namespace AikiDataBuilder.Model.Sherweb.Database;
+﻿namespace AikiDataBuilder.Model.Sherweb.Database.Customer.Subscription.CommitmentTerm;
 
 /// <summary>
 /// Part of subscription in commitment Term

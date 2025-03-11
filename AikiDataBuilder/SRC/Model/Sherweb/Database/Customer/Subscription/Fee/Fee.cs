@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace AikiDataBuilder.Model.Sherweb.Database;
+namespace AikiDataBuilder.Model.Sherweb.Database.Customer.Subscription.Fee;
 
 /// <summary>
 /// Part of subscription
