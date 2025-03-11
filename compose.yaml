@@ -4,19 +4,17 @@
     build:
       context: .
       dockerfile: AikiDataBuilder/Dockerfile
-  mysql:
-    image: mysql:8.0
-    container_name: mysql-container
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: mssql-container
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: my_database
-      MYSQL_USER: user
-      MYSQL_PASSWORD: userpassword
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "YourStrong!Passw0rd"
     ports:
-      - "3306:3306"
+      - "1433:1433"
     volumes:
-      - mysql-data:/var/lib/mysql
+      - mssql-data:/var/opt/mssql
 
 volumes:
-  mysql-data:
+  mssql-data:
       

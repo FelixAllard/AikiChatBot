@@ -1,19 +1,12 @@
-﻿using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
-using Sherweb.Apis.ServiceProvider.Models;
-using JsonSerializer = Newtonsoft.Json.JsonSerializer;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+﻿using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
-using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace AikiDataBuilder.Database;
 
 public class SherwebDBContext : DbContext
 {
-    public SherwebDBContext(DbContextOptions<SherwebDBContext> options)
-        : base(options)
-    {
-    }
+    public SherwebDBContext(DbContextOptions<SherwebDBContext> options) : base(options) { }
 
     public DbSet<SherwebModel> Customers { get; set; }
     public DbSet<PlatformUsage> PlatformUsages { get; set; }
@@ -40,28 +33,132 @@ public class SherwebDBContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Create value converters
+        // Configure JSON conversions
         var listStringConverter = new ValueConverter<List<string>, string>(
-            v => System.Text.Json.JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
-            v => System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions)null) ?? new List<string>()
+            v => JsonSerializer.Serialize(v ?? new List<string>(), (JsonSerializerOptions)null),
+            v => JsonSerializer.Deserialize<List<string>>(v ?? "[]", (JsonSerializerOptions)null) ?? new List<string>()
         );
 
-        var dictionaryConverter = new ValueConverter<Dictionary<string, object>, string>(
-            v => System.Text.Json.JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
-            v => System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(v, (JsonSerializerOptions)null) ?? new Dictionary<string, object>()
-        );
-
-        // Apply converters
-        modelBuilder.Entity<Customer>()
+        modelBuilder.Entity<SherwebModel>()
             .Property(c => c.Path)
             .HasConversion(listStringConverter);
 
         modelBuilder.Entity<PlatformDetails>()
             .Property(p => p.Details)
-            .HasConversion(dictionaryConverter);
+            .HasColumnType("nvarchar(max)");
 
-        // Add indexes
-        modelBuilder.Entity<Customer>().HasIndex(c => c.DisplayName);
+        // Configure relationships
+        modelBuilder.Entity<SherwebModel>(entity =>
+        {
+            entity.HasMany(c => c.Platform)
+                .WithOne()
+                .HasForeignKey("CustomerId")
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(c => c.ReceivableCharges)
+                .WithOne(r => r.Customer)
+                .HasForeignKey<ReceivableCharges>(r => r.CustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(c => c.Subscriptions)
+                .WithOne(s => s.Customer)
+                .HasForeignKey(s => s.CustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PlatformUsage>(entity =>
+        {
+            entity.HasMany(p => p.MeterUsages)
+                .WithOne(m => m.PlatformUsage)
+                .HasForeignKey(m => m.PlatformUsageId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(p => p.PlatformDetails)
+                .WithOne(pd => pd.PlatformUsage)
+                .HasForeignKey<PlatformDetails>(pd => pd.PlatformUsageId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ReceivableCharges>(entity =>
+        {
+            entity.HasMany(rc => rc.Charges)
+                .WithOne(c => c.ReceivableCharges)
+                .HasForeignKey(c => c.ReceivableChargesId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Subscription>(entity =>
+        {
+            entity.HasOne(s => s.Fees)
+                .WithOne(f => f.Subscription)
+                .HasForeignKey<SubscriptionFees>(f => f.SubscriptionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(s => s.CommitmentTerm)
+                .WithOne(ct => ct.Subscription)
+                .HasForeignKey<CommitmentTerm>(ct => ct.SubscriptionId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<CommitmentTerm>(entity =>
+        {
+            entity.HasOne(ct => ct.RenewalConfiguration)
+                .WithOne(rc => rc.CommitmentTerm)
+                .HasForeignKey<RenewalConfiguration>(rc => rc.CommitmentTermId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(ct => ct.CommittedMinimalQuantities)
+                .WithOne(cmq => cmq.CommitmentTerm)
+                .HasForeignKey(cmq => cmq.CommitmentTermId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Platform>(entity =>
+        {
+            entity.HasMany(p => p.Name)
+                .WithOne(ln => ln.Platform)
+                .HasForeignKey(ln => ln.PlatformId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PayableCharges>(entity =>
+        {
+            entity.HasMany(pc => pc.Charges)
+                .WithOne(c => c.PayableCharges)
+                .HasForeignKey(c => c.PayableChargesId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PayableCharge>(entity =>
+        {
+            entity.HasMany(pc => pc.Deductions)
+                .WithOne(d => d.PayableCharge)
+                .HasForeignKey(d => d.PayableChargeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(pc => pc.Fees)
+                .WithOne(f => f.PayableCharge)
+                .HasForeignKey(f => f.PayableChargeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(pc => pc.Invoice)
+                .WithOne(i => i.PayableCharge)
+                .HasForeignKey<Invoice>(i => i.PayableChargeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(pc => pc.Taxes)
+                .WithOne(t => t.PayableCharge)
+                .HasForeignKey(t => t.PayableChargeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(pc => pc.Tags)
+                .WithOne(t => t.PayableCharge)
+                .HasForeignKey(t => t.PayableChargeId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Add indexes for better query performance
+        modelBuilder.Entity<SherwebModel>().HasIndex(c => c.DisplayName);
         modelBuilder.Entity<PayableCharge>().HasIndex(pc => pc.ChargeId);
         modelBuilder.Entity<Invoice>().HasIndex(i => i.Number);
     }
