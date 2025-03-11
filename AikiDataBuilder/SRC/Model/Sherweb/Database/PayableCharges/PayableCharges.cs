@@ -1,8 +1,8 @@
 ﻿namespace AikiDataBuilder.Model.Sherweb.Database.PayableCharges;
 
-public class PayableCharges
+public class PayableCharge
 {
-    private string PeriodFrom {get; set;}
-    private string PeriodTo {get; set;}
-    
+    public string PeriodFrom { get; set; }
+    public string PeriodTo { get; set; }
+    public List<PayableChargeDetail> Charges { get; set; } = new List<PayableChargeDetail>();
 }

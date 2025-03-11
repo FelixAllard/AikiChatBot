@@ -5,6 +5,7 @@
 /// </summary>
 public class RenewalConfiguration
 {
-    private string RenewalDate { get; set; }
-    private int ScheduledQuantity { get; set; }
+    public int Id { get; set; }
+    public string RenewalDate { get; set; }
+    public int ScheduledQuantity { get; set; }
 }

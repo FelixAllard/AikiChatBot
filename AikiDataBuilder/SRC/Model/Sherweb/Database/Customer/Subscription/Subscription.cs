@@ -4,13 +4,14 @@ namespace AikiDataBuilder.Model.Sherweb.Database.Customer.Subscription;
 
 public class Subscription
 {
-    [Key]
-    private string Id { get; set; }
-    private string ProductName { get; set; }
-    private string Description { get; set; }
-    private string Sku { get; set; }
-    private int Quantity { get; set; }
-    private string BillingCycle { get; set; }
-    private string PurchaseDate { get; set; }
-    private CommitmentTerm.CommitmentTerm CommitmentTerm { get; set; }
+    public int Id { get; set; }
+    public string ProductName { get; set; }
+    public string Description { get; set; }
+    public string Sku { get; set; }
+    public int Quantity { get; set; }
+    public string BillingCycle { get; set; }
+    public string PurchaseDate { get; set; }
+    
+    public Fee.Fee Fees { get; set; }
+    public CommitmentTerm.CommitmentTerm CommitmentTerm { get; set; }
 }

@@ -7,8 +7,9 @@ namespace AikiDataBuilder.Model.Sherweb.Database.Customer.Subscription.Commitmen
 /// </summary>
 public class CommitmentTerm
 {
-    private CommitmentLenght CommitmentLenght { get; set; }
-    private string TermEndDate { get; set; }
-    private RenewalConfiguration RenewalConfiguration { get; set; }
-    private CommittedMinimalQuantities CommittedMinimalQuantities { get; set; }
+    public int Id { get; set; }
+    public string Type { get; set; }
+    public string TermEndDate { get; set; }
+    public RenewalConfiguration RenewalConfiguration { get; set; }
+    public List<CommittedMinimalQuantity> CommittedMinimalQuantities { get; set; } = new List<CommittedMinimalQuantity>();
 }

@@ -8,18 +8,18 @@ namespace AikiDataBuilder.Model.Sherweb.Database.Customer.ReceivableCharges;
 /// </summary>
 public class Charge
 {
-    [Key]
-    private string ChargeId { get; set; }
-    private string ProductName { get; set; }
-    private string Sku { get; set; }
-    private string ChargeName { get; set; }
-    private Setup ChargeType { get; set; }
-    private OneTime BillingCycleType { get; set; }
-    private string PeriodFrom { get; set; }
-    private string PeriodTo { get; set; }
-    private int Quantity { get; set; }
-    private int CostPrice { get; set; }
-    private int CostPriceProrated { get; set; }
-    private string Currency { get; set; }
-    private bool isProrated { get; set; }
+    public int Id { get; set; }
+    public string ProductName { get; set; }
+    public string Sku { get; set; }
+    public string ChargeId { get; set; }
+    public string ChargeName { get; set; }
+    public string ChargeType { get; set; }
+    public string BillingCycleType { get; set; }
+    public string PeriodFrom { get; set; }
+    public string PeriodTo { get; set; }
+    public int Quantity { get; set; }
+    public decimal CostPrice { get; set; }
+    public decimal CostPriceProrated { get; set; }
+    public string Currency { get; set; }
+    public bool IsProratable { get; set; }
 }

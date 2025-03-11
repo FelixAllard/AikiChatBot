@@ -3,5 +3,5 @@
 public class Platform
 {
     private string Id {get; set;}
-    private Name[] Name {get; set;}
+    private PlatformName[] Name {get; set;}
 }

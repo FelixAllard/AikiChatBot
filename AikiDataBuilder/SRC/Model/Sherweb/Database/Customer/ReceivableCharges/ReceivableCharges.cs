@@ -4,7 +4,8 @@ namespace AikiDataBuilder.Model.Sherweb.Database.Customer.ReceivableCharges;
 
 public class ReceivableCharges
 {
-    [Key]
-    private string PeriodFrom { get; set; }
-    private string PeriodTo { get; set; }
+    public int Id { get; set; }
+    public string PeriodFrom { get; set; }
+    public string PeriodTo { get; set; }
+    public List<Charge> Charges { get; set; } = new List<Charge>();
 }

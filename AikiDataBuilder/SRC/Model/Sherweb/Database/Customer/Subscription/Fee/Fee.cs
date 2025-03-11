@@ -8,10 +8,8 @@ namespace AikiDataBuilder.Model.Sherweb.Database.Customer.Subscription.Fee;
 [Keyless]
 public class Fee
 {
-    private int RecurringFee { get; set; }
-    private int SetupFee { get; set; }
-    /// <summary>
-    /// The online model uses a Enum, but I leave it as a string for more allowed types of currency
-    /// </summary>
-    private string Currency { get; set; }
+    public int Id { get; set; }
+    public decimal RecurringFee { get; set; }
+    public decimal SetupFee { get; set; }
+    public string Currency { get; set; }
 }

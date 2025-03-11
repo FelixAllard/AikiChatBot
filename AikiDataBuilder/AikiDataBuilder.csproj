@@ -36,11 +36,32 @@
       <Content Include="..\.dockerignore">
         <Link>.dockerignore</Link>
       </Content>
+      <Content Remove="SRC\Model\Sherweb\Database\PayableCharges\**" />
+      <Content Remove="SRC\Model\Sherweb\Database\Platform\**" />
+      <Content Remove="SRC\Model\Sherweb\Database\Customer\**" />
     </ItemGroup>
 
     <ItemGroup>
       <Folder Include="SRC\Services\" />
       <Folder Include="SRC\Sherweb\Authorization\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="SRC\Model\Sherweb\Database\PayableCharges\**" />
+      <Compile Remove="SRC\Model\Sherweb\Database\Platform\**" />
+      <Compile Remove="SRC\Model\Sherweb\Database\Customer\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Remove="SRC\Model\Sherweb\Database\PayableCharges\**" />
+      <EmbeddedResource Remove="SRC\Model\Sherweb\Database\Platform\**" />
+      <EmbeddedResource Remove="SRC\Model\Sherweb\Database\Customer\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="SRC\Model\Sherweb\Database\PayableCharges\**" />
+      <None Remove="SRC\Model\Sherweb\Database\Platform\**" />
+      <None Remove="SRC\Model\Sherweb\Database\Customer\**" />
     </ItemGroup>
 
 </Project>

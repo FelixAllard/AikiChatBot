@@ -3,8 +3,9 @@
 /// <summary>
 /// Part of subscription in commitment Term
 /// </summary>
-public class CommittedMinimalQuantities
+public class CommittedMinimalQuantity
 {
-    private string CommitedUntil { get; set; }
-    private int Quantity { get; set; }
+    public int Id { get; set; }
+    public string CommittedUntil { get; set; }
+    public int Quantity { get; set; }
 }
