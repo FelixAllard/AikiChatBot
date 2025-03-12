@@ -12,9 +12,11 @@ public class SherwebFetcher : IApiFetcher
     public List<IHttpWorker> Workers { get; set; }
     public ILogger<IApiFetcher> Logger { get; set; }
     private readonly IConfiguration _configuration;
+    private readonly int _numberOfWorkers = 3;
+    protected Dictionary<string, string> keys;
 
 
-    private OperationResult<Dictionary<string, string>> GetCredentials()
+    public OperationResult<Dictionary<string, string>> GetCredentials()
     {
         string baseUrl = _configuration["SherwebCredentials:BaseUrl"];
         string subscriptionKey = _configuration["SherwebCredentials:SubscriptionKey"];
@@ -36,7 +38,7 @@ public class SherwebFetcher : IApiFetcher
                     { "ClientId", clientId },
                     { "ClientSecret", clientId },
                 },
-                Error = new FormatException("The credentials fetch failed for one or more values"),
+                Exception = new FormatException("The credentials fetch failed for one or more values"),
                 Message = "Make sure the credentials are filled in the appsettings.json file.",
                 Status = OperationResultStatus.Critical
             };
@@ -55,17 +57,49 @@ public class SherwebFetcher : IApiFetcher
             Status = OperationResultStatus.Success
         };
     }
-    public async Task<OperationResult<List<IHttpWorker>>> CreateWorkers(int workersCount)
+    public OperationResult<List<IHttpWorker>> CreateWorkers(int workersCount)
     {
         throw new NotImplementedException();
     }
 
-    public async Task<OperationResult<List<IHttpWorker>>> CreateWorkers()
+    public OperationResult<List<IHttpWorker>> CreateWorkers()
     {
-        throw new NotImplementedException();
+        var credidentials = GetCredentials();
+        if (credidentials.Status != OperationResultStatus.Success)
+        {
+            Logger.LogError($"The program encountered {credidentials.Status.ToString()} " +
+                            $"while retrieving the information : {credidentials.Message}"
+            );
+            // Resturn a failure OperationResult in order to go back up in the call stack
+            return new OperationResult<List<IHttpWorker>>()
+            {
+                Exception = credidentials.Exception,
+                Status = OperationResultStatus.Failed,
+                Message = credidentials.Message
+            };
+
+        }
+        for (int i = 0; i < _numberOfWorkers; i++)
+        {
+            var sherwebWorker = new SherwebWorkers(_configuration);
+            sherwebWorker.PrepareWorker(credidentials.Result);
+            Workers.Add(
+                new SherwebWorkers(
+                    _configuration
+                    )
+                );
+            
+        }
+
+        return new OperationResult<List<IHttpWorker>>()
+        {
+            Status = OperationResultStatus.Success,
+            Result = Workers,
+            Message = $"Successfully created the {Workers.Count} workers."
+        };
     }
 
-    public async Task<OperationResult<List<IHttpWorker>>> CreateWorkers(List<IHttpWorker> workers)
+    public OperationResult<List<IHttpWorker>> CreateWorkers(List<IHttpWorker> workers)
     {
         throw new NotImplementedException();
     }
