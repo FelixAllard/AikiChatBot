@@ -1,0 +1,53 @@
+﻿namespace AikiDataBuilder.Model.SystemResponse;
+
+/// <summary>
+/// This class will be used in order to have efficient returns for functions 
+/// </summary>
+/// <typeparam name="T">The type of the result field</typeparam>
+public class OperationResult<T>
+{
+    /// <summary>
+    /// Optional Constructor
+    /// </summary>
+    /// <param name="message">A custom message to send with the method</param>
+    /// <param name="status">The status using the <see cref="AikiDataBuilder.Model.SystemResponse.OperationResultStatus"/></param>
+    /// <param name="error">If an error occured, we put the error inside</param>
+    /// <param name="result">The result which will be of the class given type</param>
+    public OperationResult(
+        string message = null, 
+        OperationResultStatus status = OperationResultStatus.Success, 
+        Exception error = null, 
+        T result = default
+    )
+    {
+        Message = message;
+        Status = status;
+        Error = error;
+        Result = result;
+    }
+    /// <summary>
+    /// A message we can attach to the result
+    /// </summary>
+    public string Message { get; set; }
+    /// <summary>
+    /// Status
+    /// </summary>
+    public OperationResultStatus Status { get; set; }
+    /// <summary>
+    /// If any errors, can be fed into this field
+    /// </summary>
+    public Exception Error { get; set; }
+    /// <summary>
+    /// The result of the function if any
+    /// </summary>
+    public T Result { get; set; }
+
+    /// <summary>
+    /// Basic ToString Function
+    /// </summary>
+    /// <returns>Returns all the fields in string format</returns>
+    public string ToString()
+    {
+        return $"{nameof(Message)}: {Message}, {nameof(Status)}: {Status}, {nameof(Error)}: {Error.Message}";
+    }
+}

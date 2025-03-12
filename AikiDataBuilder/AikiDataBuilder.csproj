@@ -42,11 +42,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="SRC\Services\" />
-      <Folder Include="SRC\Sherweb\Authorization\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <Compile Remove="SRC\Model\Sherweb\Database\PayableCharges\**" />
       <Compile Remove="SRC\Model\Sherweb\Database\Platform\**" />
       <Compile Remove="SRC\Model\Sherweb\Database\Customer\**" />
