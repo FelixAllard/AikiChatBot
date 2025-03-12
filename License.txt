@@ -1,0 +1,40 @@
+AIKI SECURE RESTRICTED LICENSE
+Version 1.0
+
+This is a legally binding agreement between AIKI Secure ("Licensor") and any recipient ("User") of this software or product.
+
+1. RESTRICTED ACCESS
+All rights reserved. No part of this product may be used, reproduced, modified, distributed, or accessed in any form or by any means without explicit written authorization from AIKI Secure.
+
+2. AUTHORIZATION REQUIREMENT
+Any and all usage of this product requires prior written authorization from AIKI Secure. Requests for authorization must be submitted directly to AIKI Secure and will be evaluated on a case-by-case basis.
+
+3. PROHIBITED ACTIVITIES
+Without explicit authorization from AIKI Secure, you may not:
+- Use the product
+- Copy the product
+- Modify the product
+- Distribute the product
+- Reverse engineer the product
+- Create derivative works
+- Transfer the product to any third party
+
+4. TERMINATION
+Any unauthorized use will result in immediate termination of access rights and may subject the user to legal action.
+
+5. OWNERSHIP
+All rights, title, and interest in and to the product remain with AIKI Secure.
+
+6. WARRANTY DISCLAIMER
+This product is provided "AS IS" without any warranties of any kind.
+
+7. GOVERNING LAW
+This license is governed by applicable international copyright laws and treaties.
+
+For authorization requests contact:
+AIKI Secure
+
+
+BY POSSESSING THIS PRODUCT, YOU ACKNOWLEDGE THAT USAGE WITHOUT PROPER AUTHORIZATION FROM AIKI SECURE IS STRICTLY PROHIBITED.
+
+Copyright © [2025] AIKI Secure. All Rights Reserved.
