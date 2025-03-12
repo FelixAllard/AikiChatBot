@@ -13,7 +13,7 @@ public interface IApiFetcher
     /// <summary>
     /// The different workers which will be responsible for the api calls
     /// </summary>
-    public List<IHttpRequest> Workers { get; set; }
+    public List<IHttpWorker> Workers { get; set; }
     /// <summary>
     /// The logger which will be used in debugging
     /// </summary>
@@ -28,18 +28,18 @@ public interface IApiFetcher
     /// <b>Deprecated:</b> Use <see cref="CreateWorkers()"/> instead. This is because we want each ApiFetchers to have their own numbers of workers
     /// </remarks>
     [Obsolete]
-    public Task<OperationResult<List<IHttpRequest>>> CreateWorkers(int workersCount);
+    public Task<OperationResult<List<IHttpWorker>>> CreateWorkers(int workersCount);
     /// <summary>
     /// This function will be asynchronous. It will store the workers in the Workers variable and return them
     /// </summary>
     /// <returns>A Task Operation Result which will hold the list of workers</returns>
-    public Task<OperationResult<List<IHttpRequest>>> CreateWorkers();
+    public Task<OperationResult<List<IHttpWorker>>> CreateWorkers();
     /// <summary>
     /// Not a used function, but will be responsible for creating workers using already existing Workers
     /// </summary>
     /// <param name="workers">The List of workers that will be used</param>
     /// <returns>A Task Operation Result which will hold the list of workers</returns>
-    public Task<OperationResult<List<IHttpRequest>>> CreateWorkers(List<IHttpRequest> workers);
+    public Task<OperationResult<List<IHttpWorker>>> CreateWorkers(List<IHttpWorker> workers);
     /// <summary>
     /// This function will do all the operations for a single api,
     /// managing all the workers in order to accelerate api calls

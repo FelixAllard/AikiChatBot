@@ -9,7 +9,7 @@ namespace AikiDataBuilder.Services.SherwebFetcher;
 /// </summary>
 public class SherwebFetcher : IApiFetcher
 {
-    public List<IHttpRequest> Workers { get; set; }
+    public List<IHttpWorker> Workers { get; set; }
     public ILogger<IApiFetcher> Logger { get; set; }
     private readonly IConfiguration _configuration;
 
@@ -55,17 +55,17 @@ public class SherwebFetcher : IApiFetcher
             Status = OperationResultStatus.Success
         };
     }
-    public async Task<OperationResult<List<IHttpRequest>>> CreateWorkers(int workersCount)
+    public async Task<OperationResult<List<IHttpWorker>>> CreateWorkers(int workersCount)
     {
         throw new NotImplementedException();
     }
 
-    public async Task<OperationResult<List<IHttpRequest>>> CreateWorkers()
+    public async Task<OperationResult<List<IHttpWorker>>> CreateWorkers()
     {
         throw new NotImplementedException();
     }
 
-    public async Task<OperationResult<List<IHttpRequest>>> CreateWorkers(List<IHttpRequest> workers)
+    public async Task<OperationResult<List<IHttpWorker>>> CreateWorkers(List<IHttpWorker> workers)
     {
         throw new NotImplementedException();
     }
