@@ -30,7 +30,7 @@ public interface IHttpWorker
     public Task<OperationResult<JsonContent>> HandleTimeout(Request request, float timeout);
     /// <summary>
     /// In case of an UnAuthorized, this function will be called which will handle making sure to refresh the key.
-    /// <b> This should not happen but we are prepared for it!</b>
+    /// <b> This should not happen, but we are prepared for it!</b>
     /// </summary>
     /// <remarks>This will do a recursive call to <see cref="SendRequest(Request, float)"/> if it is able to authenticate</remarks>
     /// <param name="request">The request that failed because of an Unauthorized</param>
