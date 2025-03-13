@@ -1,4 +1,9 @@
-﻿using AikiDataBuilder.Model.SystemResponse;
+﻿using System.Net;
+using AikiDataBuilder.Model.SystemResponse;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 
 namespace AikiDataBuilder.Services.Workers;
 
@@ -15,6 +20,18 @@ public abstract class Request
     {
         _httpClient = clientFactory.CreateClient();
         
+    }
+
+    public OperationResult<string> SetUrl(string url)
+    {
+        Url = url;
+        return new OperationResult<string>()
+        {
+            Result = Url,
+            Message = "URL set successfully",
+            Exception = null,
+            Status = OperationResultStatus.Success
+        };
     }
 
     /// <summary>
@@ -94,11 +111,106 @@ public abstract class Request
             Result = headerVariables
         };
     }
+    /// <summary>
+    /// Is responsible to build the URL by replacing variables in the URL by real things
+    /// </summary>
+    /// <returns>The Built URL</returns>
 
-
-    public virtual Task<OperationResult<JsonContent>> SendRequest(Request request, float timeout = 3000)
+    private OperationResult<string> BuildUrl()
     {
-        throw new NotImplementedException();
+        string finalUrl = Url;
+        try
+        {
+            foreach (var parameter in _queryParameters)
+            {
+                finalUrl = finalUrl.Replace(parameter.Key, parameter.Value);
+            }
+        }
+        catch (Exception e)
+        {
+            return new OperationResult<string>()
+            {
+                Exception = e,
+                Status = OperationResultStatus.Failed,
+                Message = "Failed to place Query Parameters",
+                Result = finalUrl
+            };
+        }
+
+        return new OperationResult<string>()
+        {
+            Status = OperationResultStatus.Success,
+            Message = "Successfully Built URL",
+            Result = finalUrl
+        };
+    }
+
+
+    public virtual Task<OperationResult<JsonContent>> SendRequest(float timeout = 3000)
+    {
+        _httpClient.Timeout = TimeSpan.FromSeconds(timeout);
+        OperationResult<string> builtUrl = BuildUrl();
+        if (builtUrl.Status != OperationResultStatus.Success)
+            return Task.FromResult(new OperationResult<JsonContent>
+            {
+                Status = OperationResultStatus.Failed,
+                Message = builtUrl.Message + " Because of the previous problem, " +
+                          "we will not be doing API calls to the endpoint. " +
+                          "We will be skipping this call",
+                Result = JsonContent.Create(builtUrl.Result),
+                Exception = builtUrl.Exception
+            });
+        var request = new HttpRequestMessage(HttpMethod.Get, builtUrl.Result);
+        if (!UrlEncodedFormContent.IsNullOrEmpty())
+            request.Content = new FormUrlEncodedContent(UrlEncodedFormContent);
+        if (_jsonContent != default)
+            request.Content = request.Content;
+        foreach (var header in _headers)
+        {
+            request.Headers.Add(header.Key, header.Value);
+        }
+        
+        var response = _httpClient.SendAsync(request).Result;
+        try
+        {
+            response.EnsureSuccessStatusCode();
+        }
+        catch (HttpRequestException e)
+        {
+            // If it is simply unauthorized, we simply need to revise the toke
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+                return Task.FromResult(new OperationResult<JsonContent>()
+                {
+                    Status = OperationResultStatus.PartialSuccess,
+                    Message = "Encountered 401 Unauthorized Request",
+                    Result = JsonContent.Create(response.Content.ReadAsStringAsync().Result),
+                    Exception = e
+                });
+            //If it is anything else, well let's just say we'll need to skip
+            return Task.FromResult(new OperationResult<JsonContent>()
+            {
+                Status = OperationResultStatus.Failed,
+                Message = $"Encountered {response.StatusCode} HTTP ERROR",
+                Result = JsonContent.Create(response.Content.ReadAsStringAsync().Result),
+                Exception = e
+            });
+        }
+        var contentofResponse = response.Content.ReadAsStringAsync().Result;
+        if (contentofResponse.IsNullOrEmpty())
+        {
+            return Task.FromResult(new OperationResult<JsonContent>()
+            {
+                Status = OperationResultStatus.PartialSuccess,
+                Message = $"Received Empty Response",
+                Result = JsonContent.Create(JsonConvert.DeserializeObject(contentofResponse))
+            });
+        }
+        return Task.FromResult(new OperationResult<JsonContent>()
+        {
+            Status = OperationResultStatus.Success,
+            Message = $"Received a valid Response",
+            Result = JsonContent.Create(JsonConvert.DeserializeObject(contentofResponse))
+        });
     }
     
 }
