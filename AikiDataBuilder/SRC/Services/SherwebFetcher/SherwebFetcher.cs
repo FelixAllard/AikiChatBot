@@ -1,6 +1,7 @@
 ﻿using AikiDataBuilder.Model.SystemResponse;
 using AikiDataBuilder.Services.DataFetcher;
 using AikiDataBuilder.Services.Workers;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace AikiDataBuilder.Services.SherwebFetcher;
 
@@ -99,9 +100,32 @@ public class SherwebFetcher : IApiFetcher
         };
     }
 
-    public OperationResult<List<IHttpWorker>> CreateWorkers(List<IHttpWorker> workers)
+    public async Task<OperationResult<List<IHttpWorker>>> CreateWorkers(List<IHttpWorker> workers)
     {
-        throw new NotImplementedException();
+        List<Task> workerTasks = new List<Task>();
+
+        for (int i = 0; i < _numberOfWorkers; i++)
+        {
+            var worker = new SherwebWorkers(_configuration);
+            Workers.Add(worker);
+    
+            // Run PrepareWorker asynchronously
+            var task = worker.PrepareWorker(keys);
+            workerTasks.Add(task);
+        }
+
+        // Wait for all workers to complete
+        await Task.WhenAll(workerTasks);
+
+        // Now continue after all workers are prepared
+
+
+        return new OperationResult<List<IHttpWorker>>
+        {
+            Result = workers,
+            Message = $"Successfully created the {workers.Count} workers.",
+            Status = OperationResultStatus.Success
+        };
     }
 
     public async Task<OperationResult<JsonContent>> GetInformationFromApi(DateTime currentDateTime)

@@ -11,7 +11,7 @@ public interface IHttpWorker
     /// </summary>
     /// <returns>Operation Result Holding the reference to itself</returns>
     /// <param name="credentials">Will hold all the credential. Reference to a dictionary because it will also hold the bearer</param>
-    public OperationResult<IHttpWorker> PrepareWorker(Dictionary<string,string> credentials);
+    public Task<OperationResult<IHttpWorker>> PrepareWorker(Dictionary<string,string> credentials);
     
 
     /// <summary>

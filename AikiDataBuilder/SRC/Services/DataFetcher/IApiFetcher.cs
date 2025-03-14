@@ -45,7 +45,7 @@ public interface IApiFetcher
     /// </summary>
     /// <param name="workers">The List of workers that will be used</param>
     /// <returns>A Task Operation Result which will hold the list of workers</returns>
-    public OperationResult<List<IHttpWorker>> CreateWorkers(List<IHttpWorker> workers);
+    public Task<OperationResult<List<IHttpWorker>>> CreateWorkers(List<IHttpWorker> workers);
     /// <summary>
     /// This function will do all the operations for a single api,
     /// managing all the workers in order to accelerate api calls

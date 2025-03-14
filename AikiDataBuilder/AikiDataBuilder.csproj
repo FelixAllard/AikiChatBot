@@ -59,4 +59,8 @@
       <None Remove="SRC\Model\Sherweb\Database\Customer\**" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="SRC\Services\SherwebFetcher\Instructions\" />
+    </ItemGroup>
+
 </Project>

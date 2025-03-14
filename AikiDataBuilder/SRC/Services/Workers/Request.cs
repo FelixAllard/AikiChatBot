@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using AikiDataBuilder.Database;
 using AikiDataBuilder.Model.SystemResponse;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -15,10 +16,15 @@ public abstract class Request
     protected List<KeyValuePair<string, string>> UrlEncodedFormContent;
     protected JsonContent _jsonContent;
     protected Dictionary<string, string> _queryParameters;
+    protected SherwebDBContext _sherwebDBContext;
 
-    public Request(IHttpClientFactory clientFactory)
+    public Request(
+        IHttpClientFactory clientFactory,
+        SherwebDBContext sherwebDBContext
+        )
     {
         _httpClient = clientFactory.CreateClient();
+        _sherwebDBContext = sherwebDBContext;
         
     }
     /// <summary>

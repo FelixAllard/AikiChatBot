@@ -25,7 +25,7 @@ public class SherwebWorkers : IHttpWorker
     }
 
 
-    public OperationResult<IHttpWorker> PrepareWorker(Dictionary<string, string> credentials)
+    public async Task<OperationResult<IHttpWorker>> PrepareWorker(Dictionary<string, string> credentials)
     {
         _credentials = credentials;
         _httpClient = new HttpClient();
