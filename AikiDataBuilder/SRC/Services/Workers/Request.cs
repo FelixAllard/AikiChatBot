@@ -21,6 +21,12 @@ public abstract class Request
         _httpClient = clientFactory.CreateClient();
         
     }
+    /// <summary>
+    /// This function must be called after the 
+    /// </summary>
+    /// <param name="jsonContent"></param>
+    /// <returns></returns>
+    public abstract Task<OperationResult<JsonContent>> AddToDatabase(JsonContent jsonContent);
 
     public OperationResult<string> SetUrl(string url)
     {
@@ -42,7 +48,17 @@ public abstract class Request
 
     public OperationResult<bool> SetBearerToken(string bearerToken)
     {
-        _headers.Add("Authorization", $"Bearer {bearerToken}");
+        const string headerKey = "Authorization";
+
+        // Remove existing Authorization header if it exists
+        if (_headers.ContainsKey(headerKey))
+        {
+            _headers.Remove(headerKey);
+        }
+
+        // Add the new token
+        _headers.Add(headerKey, $"Bearer {bearerToken}");
+
         return new OperationResult<bool>(
             "Successfully set bearer token as Header", 
             OperationResultStatus.Success,
@@ -50,6 +66,7 @@ public abstract class Request
             true
         );
     }
+
 
     /// <summary>
     /// This will be transformed into Encoded Form Content For when the request is actually made
@@ -145,13 +162,13 @@ public abstract class Request
         };
     }
 
-
-    public virtual Task<OperationResult<JsonContent>> SendRequest(float timeout = 3000)
+    
+    public async virtual Task<OperationResult<JsonContent>> SendRequest(float timeout = 3000)
     {
         _httpClient.Timeout = TimeSpan.FromSeconds(timeout);
         OperationResult<string> builtUrl = BuildUrl();
         if (builtUrl.Status != OperationResultStatus.Success)
-            return Task.FromResult(new OperationResult<JsonContent>
+            return await Task.FromResult(new OperationResult<JsonContent>
             {
                 Status = OperationResultStatus.Failed,
                 Message = builtUrl.Message + " Because of the previous problem, " +
@@ -169,17 +186,18 @@ public abstract class Request
         {
             request.Headers.Add(header.Key, header.Value);
         }
-        
-        var response = _httpClient.SendAsync(request).Result;
+
+        HttpResponseMessage response = new HttpResponseMessage();
         try
         {
+            response = _httpClient.SendAsync(request).Result;
             response.EnsureSuccessStatusCode();
         }
         catch (HttpRequestException e)
         {
             // If it is simply unauthorized, we simply need to revise the toke
             if (response.StatusCode == HttpStatusCode.Unauthorized)
-                return Task.FromResult(new OperationResult<JsonContent>()
+                return await Task.FromResult(new OperationResult<JsonContent>()
                 {
                     Status = OperationResultStatus.PartialSuccess,
                     Message = "Encountered 401 Unauthorized Request",
@@ -187,7 +205,7 @@ public abstract class Request
                     Exception = e
                 });
             //If it is anything else, well let's just say we'll need to skip
-            return Task.FromResult(new OperationResult<JsonContent>()
+            return await Task.FromResult(new OperationResult<JsonContent>()
             {
                 Status = OperationResultStatus.Failed,
                 Message = $"Encountered {response.StatusCode} HTTP ERROR",
@@ -195,22 +213,34 @@ public abstract class Request
                 Exception = e
             });
         }
+        catch (TaskCanceledException e)
+        {
+            return await Task.FromResult(new OperationResult<JsonContent>()
+            {
+                Status = OperationResultStatus.Failed,
+                Message = $"The http request was canceled due to a Timeout Exception",
+                Result = JsonContent.Create(response.Content.ReadAsStringAsync().Result),
+                Exception = e
+            });
+            
+        }
         var contentofResponse = response.Content.ReadAsStringAsync().Result;
         if (contentofResponse.IsNullOrEmpty())
         {
-            return Task.FromResult(new OperationResult<JsonContent>()
+            return await Task.FromResult(new OperationResult<JsonContent>()
             {
-                Status = OperationResultStatus.PartialSuccess,
+                Status = OperationResultStatus.Failed,
                 Message = $"Received Empty Response",
                 Result = JsonContent.Create(JsonConvert.DeserializeObject(contentofResponse))
             });
         }
-        return Task.FromResult(new OperationResult<JsonContent>()
+        return await Task.FromResult(new OperationResult<JsonContent>()
         {
             Status = OperationResultStatus.Success,
             Message = $"Received a valid Response",
             Result = JsonContent.Create(JsonConvert.DeserializeObject(contentofResponse))
         });
     }
+    
     
 }
