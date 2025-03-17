@@ -16,7 +16,10 @@ public interface IRequestManager
     /// <summary>
     /// The number of Workers owned By the IApiFetcher owning the Request Manager
     /// </summary>
-    public int TotalNumberOfWorkers { get; set; }
+    internal int AvailableWorkers { get; set; }
+
+    internal int MaxWorkers { get; }
+    internal bool AllWorkersAvailable { get;  }
     
     /// <summary>
     /// Will be called whenever a Worker is done with their task
@@ -32,6 +35,11 @@ public interface IRequestManager
     /// will reduce the number of workers by one
     /// </summary>
     /// <remarks>If waiting is necessary, it will hang the answer until all Workers are idle</remarks>
-    /// <returns>One or more request depending on how many are needed for idle workers</returns>
+    /// <returns>One or more request depending on how many are needed for idle workers.
+    /// <br/>
+    /// <br/> <b>HasRequest </b> : Whether a request was attributable
+    /// <br/> <b>Request </b> : The Request the worker must execute || <i>NULLABLE</i>
+    /// <br/> <b>ShouldStop </b> : If the worker is done
+    /// </returns>
     public Task<OperationResult<(bool hasRequest, Request? request, bool shouldStop)>> GetNextRequest();
 }

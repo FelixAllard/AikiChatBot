@@ -36,7 +36,7 @@ public interface IApiFetcher
     [Obsolete]
     public OperationResult<List<IHttpWorker>> CreateWorkers(int workersCount);
     /// <summary>
-    /// This function will be asynchronous. It will store the workers in the Workers variable and return them
+    /// This function will be asynchronous. It will store the workers in  the Workers variable and return them
     /// </summary>
     /// <returns>A Task Operation Result which will hold the list of workers</returns>
     public OperationResult<List<IHttpWorker>> CreateWorkers();

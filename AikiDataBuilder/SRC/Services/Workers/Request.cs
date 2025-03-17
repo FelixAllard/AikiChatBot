@@ -168,7 +168,7 @@ public abstract class Request
         };
     }
 
-    
+
     public async virtual Task<OperationResult<JsonContent>> SendRequest(float timeout = 3000)
     {
         _httpClient.Timeout = TimeSpan.FromSeconds(timeout);
@@ -228,8 +228,9 @@ public abstract class Request
                 Result = JsonContent.Create(response.Content.ReadAsStringAsync().Result),
                 Exception = e
             });
-            
+
         }
+
         var contentofResponse = response.Content.ReadAsStringAsync().Result;
         if (contentofResponse.IsNullOrEmpty())
         {
@@ -240,6 +241,7 @@ public abstract class Request
                 Result = JsonContent.Create(JsonConvert.DeserializeObject(contentofResponse))
             });
         }
+
         return await Task.FromResult(new OperationResult<JsonContent>()
         {
             Status = OperationResultStatus.Success,
@@ -247,6 +249,4 @@ public abstract class Request
             Result = JsonContent.Create(JsonConvert.DeserializeObject(contentofResponse))
         });
     }
-    
-    
 }

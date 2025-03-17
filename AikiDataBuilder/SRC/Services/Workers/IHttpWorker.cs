@@ -28,7 +28,7 @@ public interface IHttpWorker
     /// <param name="request">The same IRquest that failed before</param>
     /// <param name="timeout">The ammount of time to wait before considering the request timed out</param>
     /// <returns>Returns the response, or and Error</returns>
-    [Obsolete]
+    [Obsolete("Just never used")]
     public Task<OperationResult<JsonContent>> HandleTimeout(Request request, float timeout)
     {
         throw new NotSupportedException("This function will no longer be used.");
