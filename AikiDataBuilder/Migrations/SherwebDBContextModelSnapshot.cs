@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace AikiDataBuilder.Migrations
 {
-    [DbContext(typeof(SherwebDBContext))]
+    [DbContext(typeof(SherwebDbContext))]
     partial class SherwebDBContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

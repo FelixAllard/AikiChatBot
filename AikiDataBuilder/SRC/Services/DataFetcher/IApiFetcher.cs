@@ -52,5 +52,5 @@ public interface IApiFetcher
     /// </summary>
     /// <param name="currentDateTime">The current Date Time in order to know if we should retrieve from the database or get from the external API</param>
     /// <returns>Returns all the information in JSON Format</returns>
-    public Task<OperationResult<JsonContent>> GetInformationFromApi(DateTime currentDateTime);
+    public Task<OperationResult<(DateTime startTime, DateTime endTime, int requestCount)>> GetInformationFromApi(DateTime currentDateTime);
 }

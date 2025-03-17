@@ -11,11 +11,16 @@ namespace AikiDataBuilder.Services.SherwebFetcher.Requests;
 /// </summary>
 public class GetAllCustomers : Request
 {
-    public GetAllCustomers(IHttpClientFactory clientFactory, SherwebDBContext sherwebDBContext) : base(clientFactory, sherwebDBContext)
+    public GetAllCustomers(IHttpClientFactory clientFactory, SherwebDbContext sherwebDBContext) : base(clientFactory, sherwebDBContext)
     {
         Url = "https://api.sherweb.com/service-provider/v1/customers";
     }
-
+    /// <summary>
+    /// Adds the content to the database
+    /// </summary>
+    /// <param name="jsonContent">The content to serialize and then to add to the database</param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
     public override async Task<OperationResult<JsonContent>> AddToDatabase(JsonContent jsonContent)
     {
         Exception exception = null;
@@ -76,6 +81,9 @@ public class GetAllCustomers : Request
 
         return await Task.FromResult(new OperationResult<JsonContent>()
         {
+            Message = "Success in adding to database",
+            Exception = exception,
+            Result = jsonContent
 
         });
     }

@@ -4,9 +4,14 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace AikiDataBuilder.Database;
 
-public class SherwebDBContext : DbContext
+/// <summary>
+/// This class is the DB context. I made all the relations so it should bne easy to navigate through it.
+/// Keep in mind that migrations are done through the EF tools,
+/// and a migration is already provided in the Migrations folder
+/// </summary>
+public class SherwebDbContext : DbContext
 {
-    public SherwebDBContext(DbContextOptions<SherwebDBContext> options) : base(options) { }
+    public SherwebDbContext(DbContextOptions<SherwebDbContext> options) : base(options) { }
 
     public DbSet<SherwebModel> Customers { get; set; }
     public DbSet<PlatformUsage> PlatformUsages { get; set; }
@@ -29,6 +34,10 @@ public class SherwebDBContext : DbContext
     public DbSet<Tax> Taxes { get; set; }
     public DbSet<Tag> Tags { get; set; }
 
+    /// <summary>
+    /// I will create all the relations here
+    /// </summary>
+    /// <param name="modelBuilder">Provided by the EF tool</param>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace AikiDataBuilder.Migrations
 {
-    [DbContext(typeof(SherwebDBContext))]
+    [DbContext(typeof(SherwebDbContext))]
     [Migration("20250311165923_SherwebDbMigration")]
     partial class SherwebDbMigration
     {

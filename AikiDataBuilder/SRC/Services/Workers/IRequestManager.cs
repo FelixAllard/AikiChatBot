@@ -25,6 +25,7 @@ public interface IRequestManager
     /// if more finished, then it can be specified</param>
     /// <returns>Weather all workers were given back or not</returns>
     public OperationResult<bool> ReturnWorker(int numberOfWorkers = 1);
+
     /// <summary>
     /// Gets the next request to feed into a worker.
     /// This method will assume that the request is put inside a worker on exit and as such
@@ -32,5 +33,5 @@ public interface IRequestManager
     /// </summary>
     /// <remarks>If waiting is necessary, it will hang the answer until all Workers are idle</remarks>
     /// <returns>One or more request depending on how many are needed for idle workers</returns>
-    public Task<OperationResult<Request[]>> GetNextRequest();
+    public Task<OperationResult<(bool hasRequest, Request? request, bool shouldStop)>> GetNextRequest();
 }

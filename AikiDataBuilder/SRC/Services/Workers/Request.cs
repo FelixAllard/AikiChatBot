@@ -16,11 +16,11 @@ public abstract class Request
     protected List<KeyValuePair<string, string>> UrlEncodedFormContent;
     protected JsonContent _jsonContent;
     protected Dictionary<string, string> _queryParameters;
-    protected SherwebDBContext _sherwebDBContext;
+    protected SherwebDbContext _sherwebDBContext;
 
     public Request(
         IHttpClientFactory clientFactory,
-        SherwebDBContext sherwebDBContext
+        SherwebDbContext sherwebDBContext
         )
     {
         _httpClient = clientFactory.CreateClient();
