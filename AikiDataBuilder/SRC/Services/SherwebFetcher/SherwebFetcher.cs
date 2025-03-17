@@ -1,6 +1,8 @@
-﻿using AikiDataBuilder.Model.SystemResponse;
+﻿using AikiDataBuilder.Database;
+using AikiDataBuilder.Model.SystemResponse;
 using AikiDataBuilder.Services.DataFetcher;
 using AikiDataBuilder.Services.Workers;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace AikiDataBuilder.Services.SherwebFetcher;
@@ -12,11 +14,49 @@ public class SherwebFetcher : IApiFetcher
 {
     public List<IHttpWorker> Workers { get; set; }
     public ILogger<IApiFetcher> Logger { get; set; }
-    private readonly IConfiguration _configuration;
+    
     private readonly int _numberOfWorkers = 3;
     protected Dictionary<string, string> keys;
     private IRequestManager requestManager;
     private readonly SemaphoreSlim _semaphore;
+    
+    
+    private IConfiguration _configuration;
+    private HttpClient _httpClient;
+    private SherwebDbContext _sherwebDbContext;
+
+
+    public OperationResult<bool> Init()
+    {
+        try
+        {
+            _configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .Build();
+            _httpClient = new HttpClient();
+            var tempDbContext = new DbContextOptionsBuilder<SherwebDbContext>()
+                .UseSqlServer(_configuration.GetConnectionString("DefaultConnection"))
+                .Options;
+            _sherwebDbContext = new SherwebDbContext(tempDbContext);
+        }
+        catch (Exception e)
+        {
+            return new OperationResult<bool>()
+            {
+                Status = OperationResultStatus.Critical,
+                Exception = e,
+                Message = e.Message,
+                Result = false
+            };
+        }
+        return new OperationResult<bool>()
+        {
+            Status = OperationResultStatus.Success,
+            Message = "Successfully created Dependencies",
+            Result = false
+        };
+    }
 
     public OperationResult<Dictionary<string, string>> GetCredentials()
     {

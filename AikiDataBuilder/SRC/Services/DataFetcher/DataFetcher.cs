@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics;
 using System.Reflection;
+using AikiDataBuilder.Database;
 using AikiDataBuilder.Model.SystemResponse;
+using AikiDataBuilder.Services.SherwebFetcher;
 
 namespace AikiDataBuilder.Services.DataFetcher;
 
@@ -10,6 +12,20 @@ namespace AikiDataBuilder.Services.DataFetcher;
 public class DataFetcher
 {
     public List<IApiFetcher> Fetchers { get; set; }
+    private readonly HttpClient HttpClient;
+    private readonly IConfiguration Configuration;
+    private readonly SherwebDbContext SherwebDbContext;
+
+    public DataFetcher(
+        IHttpClientFactory httpClientFactory, 
+        IConfiguration configuration, 
+        SherwebDbContext sherwebDbContext
+    )
+    {
+        HttpClient = httpClientFactory.CreateClient();
+        Configuration = configuration;
+        SherwebDbContext = sherwebDbContext;
+    }
     
     /// <summary>
     /// This will get all API Fetchers and store them into the Fetchers variable

@@ -10,7 +10,6 @@ public class SherwebWorkers : IHttpWorker
 {
     private readonly IConfiguration _configuration;
     private readonly ILogger<SherwebWorkers> _logger;
-    protected HttpClient _httpClient;
     private Request CurrentRequest { get; set; }
     private Dictionary<string,string> _credentials;
     private Request _currentRequest;
@@ -28,7 +27,6 @@ public class SherwebWorkers : IHttpWorker
     public async Task<OperationResult<IHttpWorker>> PrepareWorker(Dictionary<string, string> credentials)
     {
         _credentials = credentials;
-        _httpClient = new HttpClient();
         return new OperationResult<IHttpWorker>()
         {
             Status = OperationResultStatus.Success,
@@ -140,7 +138,6 @@ public class SherwebWorkers : IHttpWorker
 
     public OperationResult<string> CleanUpWorker()
     {
-        _httpClient = new HttpClient();
         authorizationTryCount = 0;
         return new OperationResult<string>()
         {

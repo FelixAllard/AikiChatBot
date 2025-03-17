@@ -19,6 +19,15 @@ public interface IApiFetcher
     /// </summary>
     public ILogger<IApiFetcher> Logger { get; set; }
 
+
+    /// <summary>
+    /// Will bring in dependencies without the need of dependency injection
+    /// </summary>
+    /// <returns>
+    /// Whether it was successful or not
+    /// </returns>
+    public OperationResult<bool> Init();
+
     /// <summary>
     /// Will create the inital credidentials which will be used by the callers for various informations
     /// </summary>
