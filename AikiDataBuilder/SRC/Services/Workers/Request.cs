@@ -19,11 +19,11 @@ public abstract class Request
     protected SherwebDbContext _sherwebDBContext;
 
     public Request(
-        IHttpClientFactory clientFactory,
+        HttpClient clientFactory,
         SherwebDbContext sherwebDBContext
         )
     {
-        _httpClient = clientFactory.CreateClient();
+        _httpClient = clientFactory;
         _sherwebDBContext = sherwebDBContext;
         
     }

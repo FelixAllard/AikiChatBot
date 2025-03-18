@@ -1,5 +1,5 @@
 ﻿using System.Collections.Concurrent;
-
+using AikiDataBuilder.Database;
 using AikiDataBuilder.Model.SystemResponse;
 using AikiDataBuilder.Services.SherwebFetcher.Requests;
 using AikiDataBuilder.Services.Workers;
@@ -13,6 +13,9 @@ public class SherwebRequestManager : IRequestManager
     public int AvailableWorkers { get; set; }
     
     public int MaxWorkers { get; }
+    private IConfiguration Configuration { get; }
+    private HttpClient HttpClient { get; }
+    private SherwebDbContext SherwebDbContext { get; }
     
     public bool AllWorkersAvailable
     {
@@ -30,10 +33,14 @@ public class SherwebRequestManager : IRequestManager
     private bool awaitingOtherWorkers = false;
 
 
-    public SherwebRequestManager(int workersNumber)
+    public SherwebRequestManager(int workersNumber, HttpClient httpClient, IConfiguration config, SherwebDbContext sherwebDbContext)
     {
         MaxWorkers = workersNumber;
         AvailableWorkers = MaxWorkers;
+        HttpClient = httpClient;
+        Configuration = config;
+        SherwebDbContext = sherwebDbContext;
+        
     }
     
 
@@ -68,7 +75,10 @@ public class SherwebRequestManager : IRequestManager
                 {
                     Result = (
                         true, 
-                        new GetAllCustomers(),
+                        new GetAllCustomers(
+                            HttpClient, 
+                            SherwebDbContext
+                            ),
                         false)
 
                 });
