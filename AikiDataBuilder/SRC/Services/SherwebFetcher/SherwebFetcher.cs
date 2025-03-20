@@ -228,7 +228,6 @@ public class SherwebFetcher : IApiFetcher
                         // Fetch next request
                         var operationResult = await requestManager.GetNextRequest();
                         var (hasRequest, request, shouldStop) = operationResult.Result;
-
                         if (shouldStop)
                         {
                             Console.WriteLine("No more requests will be available, stopping worker.");
