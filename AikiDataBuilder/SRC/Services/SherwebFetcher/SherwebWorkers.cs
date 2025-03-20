@@ -9,7 +9,6 @@ namespace AikiDataBuilder.Services.SherwebFetcher;
 public class SherwebWorkers : IHttpWorker
 {
     private readonly IConfiguration _configuration;
-    private readonly ILogger<SherwebWorkers> _logger;
     private Request CurrentRequest { get; set; }
     private Dictionary<string,string> _credentials;
     private Request _currentRequest;

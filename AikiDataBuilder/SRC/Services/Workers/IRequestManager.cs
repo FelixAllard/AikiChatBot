@@ -17,6 +17,9 @@ public interface IRequestManager
     /// The number of Workers owned By the IApiFetcher owning the Request Manager
     /// </summary>
     internal int AvailableWorkers { get; set; }
+    /// <summary>
+    /// The maximum ammount of workers
+    /// </summary>
 
     internal int MaxWorkers { get; }
     internal bool AllWorkersAvailable { get;  }

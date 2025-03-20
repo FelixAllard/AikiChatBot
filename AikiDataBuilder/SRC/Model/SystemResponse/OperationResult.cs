@@ -24,6 +24,10 @@ public class OperationResult<T>
         Status = status;
         Exception = exception;
         Result = result;
+        if (message != null)
+        {
+            Console.WriteLine(message);
+        }
     }
     /// <summary>
     /// A message we can attach to the result

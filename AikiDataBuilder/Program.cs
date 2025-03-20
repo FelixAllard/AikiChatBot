@@ -1,7 +1,9 @@
+using System.Runtime.InteropServices.JavaScript;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using AikiDataBuilder.Database;
 using AikiDataBuilder.Services.DataFetcher;
+using AikiDataBuilder.Services.SherwebFetcher;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,10 +24,15 @@ builder.Services.AddDbContext<SherwebDbContext>(options =>
 //Http client that will be used in requests
 builder.Services.AddHttpClient();
 // Data Fetcher that contains all other classes of the data builder
-builder.Services.AddSingleton<DataFetcher>();
+//builder.Services.AddSingleton<DataFetcher>();
 
 
 var app = builder.Build();
+
+SherwebFetcher programTest = new SherwebFetcher();
+programTest.Init();
+programTest.CreateWorkers();
+await programTest.GetInformationFromApi(DateTime.Now);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

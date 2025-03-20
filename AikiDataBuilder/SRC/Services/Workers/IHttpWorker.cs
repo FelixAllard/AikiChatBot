@@ -13,7 +13,6 @@ public interface IHttpWorker
     /// <param name="credentials">Will hold all the credential. Reference to a dictionary because it will also hold the bearer</param>
     public Task<OperationResult<IHttpWorker>> PrepareWorker(Dictionary<string,string> credentials);
     
-
     /// <summary>
     /// Will send the Request to the specified IRequest
     /// </summary>

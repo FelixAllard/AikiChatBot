@@ -13,7 +13,6 @@ namespace AikiDataBuilder.Services.SherwebFetcher;
 public class SherwebFetcher : IApiFetcher
 {
     public List<IHttpWorker> Workers { get; set; }
-    public ILogger<IApiFetcher> Logger { get; set; }
     
     private readonly int _numberOfWorkers = 3;
     protected Dictionary<string, string> keys;
@@ -30,6 +29,7 @@ public class SherwebFetcher : IApiFetcher
     {
         try
         {
+            Workers = new List<IHttpWorker>();
             _configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -48,6 +48,9 @@ public class SherwebFetcher : IApiFetcher
                 _sherwebDbContext, 
                 keys
             );
+            var resultCreationWorkers = CreateWorkers();
+            if(resultCreationWorkers.Status!= OperationResultStatus.Success)
+                throw new ApplicationException("Failed to create workers For Sherweb Fetcher");
         }
         catch (Exception e)
         {
@@ -116,9 +119,6 @@ public class SherwebFetcher : IApiFetcher
         if (credidentials.Status != OperationResultStatus.Success)
         {
             
-            Logger.LogError($"The program encountered {credidentials.Status.ToString()} " +
-                            $"while retrieving the information : {credidentials.Message}"
-            );
             
             // Resturn a failure OperationResult in order to go back up in the call stack
             return new OperationResult<List<IHttpWorker>>()
@@ -155,10 +155,6 @@ public class SherwebFetcher : IApiFetcher
         
         if (credidentials.Status != OperationResultStatus.Success)
         {
-            
-            Logger.LogError($"The program encountered {credidentials.Status.ToString()} " +
-                            $"while retrieving the information : {credidentials.Message}"
-            );
             
             // Resturn a failure OperationResult in order to go back up in the call stack
             return new OperationResult<List<IHttpWorker>>()
@@ -226,6 +222,7 @@ public class SherwebFetcher : IApiFetcher
         // Use a thread-safe counter
         var requestCounter = new AtomicCounter();
 
+        Console.WriteLine(Workers.Count);
         foreach (var worker in Workers)
         {
             tasks.Add(Task.Run(async () =>

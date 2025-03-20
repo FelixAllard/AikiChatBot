@@ -14,10 +14,7 @@ public interface IApiFetcher
     /// The different workers which will be responsible for the api calls
     /// </summary>
     public List<IHttpWorker> Workers { get; set; }
-    /// <summary>
-    /// The logger which will be used in debugging
-    /// </summary>
-    public ILogger<IApiFetcher> Logger { get; set; }
+
 
 
     /// <summary>
