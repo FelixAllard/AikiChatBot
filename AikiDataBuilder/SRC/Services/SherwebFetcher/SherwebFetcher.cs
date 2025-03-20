@@ -39,6 +39,15 @@ public class SherwebFetcher : IApiFetcher
                 .UseSqlServer(_configuration.GetConnectionString("DefaultConnection"))
                 .Options;
             _sherwebDbContext = new SherwebDbContext(tempDbContext);
+            keys = GetCredentials().Result;
+            
+            requestManager = new SherwebRequestManager(
+                _numberOfWorkers, 
+                _httpClient,
+                _configuration, 
+                _sherwebDbContext, 
+                keys
+            );
         }
         catch (Exception e)
         {
