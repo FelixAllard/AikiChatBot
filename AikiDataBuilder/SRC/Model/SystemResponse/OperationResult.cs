@@ -1,11 +1,13 @@
 ﻿namespace AikiDataBuilder.Model.SystemResponse;
-
+using Microsoft.Extensions.Logging;
 /// <summary>
 /// This class will be used in order to have efficient returns for functions 
 /// </summary>
 /// <typeparam name="T">The type of the result field</typeparam>
+
 public class OperationResult<T>
 {
+    private string _message;
     /// <summary>
     /// Optional Constructor
     /// </summary>
@@ -14,7 +16,7 @@ public class OperationResult<T>
     /// <param name="exception">If an error occured, we put the error inside</param>
     /// <param name="result">The result which will be of the class given type</param>
     public OperationResult(
-        string message = "", 
+        string message = "Empty Message", 
         OperationResultStatus status = OperationResultStatus.Success, 
         Exception exception = null, 
         T result = default
@@ -26,12 +28,26 @@ public class OperationResult<T>
         Result = result;
         
         
-        Console.WriteLine($"[OperationResult] Created: {Message}");
     }
     /// <summary>
     /// A message we can attach to the result
     /// </summary>
-    public string Message { get; set; }
+
+    public string Message
+    {
+        get => _message;
+        set
+        {
+            _message = value;
+            var factory = LoggerFactory.Create(builder =>
+            {
+                builder.AddConsole(); // You can add other providers like Debug, File, etc.
+            });
+
+            ILogger<OperationResult<T>> logger = factory.CreateLogger<OperationResult<T>>();
+            logger.LogInformation(_message);
+        }
+    }
     /// <summary>
     /// Status
     /// </summary>

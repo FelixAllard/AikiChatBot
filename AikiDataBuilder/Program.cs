@@ -2,6 +2,7 @@ using System.Runtime.InteropServices.JavaScript;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using AikiDataBuilder.Database;
+using AikiDataBuilder.Model.SystemResponse;
 using AikiDataBuilder.Services.DataFetcher;
 using AikiDataBuilder.Services.SherwebFetcher;
 
@@ -12,7 +13,12 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Logging.ClearProviders();  // Clear default providers
 builder.Logging.AddConsole();      // Add Console logging explicitly
-
+var test = new OperationResult<string>()
+{
+    Status = OperationResultStatus.Success,
+    Message = "WELL WELL WELL",
+    Result = "Hello World!"
+};
 // Add DbContext configuration
 builder.Services.AddDbContext<SherwebDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
