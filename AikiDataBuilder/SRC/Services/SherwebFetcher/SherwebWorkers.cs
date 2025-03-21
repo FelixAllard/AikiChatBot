@@ -26,13 +26,13 @@ public class SherwebWorkers : IHttpWorker
     public async Task<OperationResult<IHttpWorker>> PrepareWorker(Dictionary<string, string> credentials)
     {
         _credentials = credentials;
-        return new OperationResult<IHttpWorker>()
+        return await Task.FromResult(new OperationResult<IHttpWorker>()
         {
             Status = OperationResultStatus.Success,
             Result = this,
             Exception = null,
             Message = "Preparations are complete! Worker is now operational",
-        };
+        });
     }
 
     public async Task<OperationResult<JsonContent>> SendRequest(Request request, float timeout = 3000)
@@ -73,13 +73,13 @@ public class SherwebWorkers : IHttpWorker
         }
         catch (Exception e)
         {
-            return new OperationResult<JsonContent>()
+            return await Task.FromResult(new OperationResult<JsonContent>()
             {
                 Status = OperationResultStatus.Failed,
                 Exception = e,
                 Message = e.Message,
                 Result = null
-            };
+            });
         }
 
         return await Task.FromResult(new OperationResult<JsonContent>()
@@ -99,14 +99,14 @@ public class SherwebWorkers : IHttpWorker
         {
             var response = _authentificationRequest.SendRequest();
             if (response.Result.Status == OperationResultStatus.Failed)
-                return new OperationResult<string>()
+                return await Task.FromResult(new OperationResult<string>()
                 {
                     Status = OperationResultStatus.Failed,
                     Message = "Unable to finish operation because critical error happened in the the request",
                     Exception = response.Exception,
                     Result = response.Result.Result.ToString()
                     
-                };
+                });
             var jsonObject = await response.Result.Result.ReadFromJsonAsync<Dictionary<string, object>>();
             //Retrieving the token from the Authorization string
             bearerToken = jsonObject?["access_token"]?.ToString();
