@@ -39,6 +39,11 @@
       <Content Remove="SRC\Model\Sherweb\Database\PayableCharges\**" />
       <Content Remove="SRC\Model\Sherweb\Database\Platform\**" />
       <Content Remove="SRC\Model\Sherweb\Database\Customer\**" />
+      <Content Update="appsettings.example.json">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </Content>
     </ItemGroup>
 
     <ItemGroup>

@@ -15,16 +15,21 @@ public class DataFetcher
     private readonly HttpClient HttpClient;
     private readonly IConfiguration Configuration;
     private readonly SherwebDbContext SherwebDbContext;
+    private readonly ILogger<DataFetcher> _logger;
 
     public DataFetcher(
         IHttpClientFactory httpClientFactory, 
         IConfiguration configuration, 
-        SherwebDbContext sherwebDbContext
+        SherwebDbContext sherwebDbContext,
+        ILogger<DataFetcher> logger
+        
     )
     {
         HttpClient = httpClientFactory.CreateClient();
         Configuration = configuration;
         SherwebDbContext = sherwebDbContext;
+        _logger = logger;
+        _logger.LogInformation("WE REACHED THIS STATEMENT");
     }
     
     /// <summary>

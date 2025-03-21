@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
+using AikiDataBuilder.Model.Sherweb.Database;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace AikiDataBuilder.Database;

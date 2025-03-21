@@ -2,6 +2,8 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using AikiDataBuilder.Model.Sherweb.Database.Enumerators;
 
+namespace AikiDataBuilder.Model.Sherweb.Database;
+
 public class SherwebModel
 {
     [Key]

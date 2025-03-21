@@ -10,6 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Logging.ClearProviders();  // Clear default providers
+builder.Logging.AddConsole();      // Add Console logging explicitly
 
 // Add DbContext configuration
 builder.Services.AddDbContext<SherwebDbContext>(options =>
@@ -24,15 +26,15 @@ builder.Services.AddDbContext<SherwebDbContext>(options =>
 //Http client that will be used in requests
 builder.Services.AddHttpClient();
 // Data Fetcher that contains all other classes of the data builder
-//builder.Services.AddSingleton<DataFetcher>();
-
+builder.Services.AddScoped<DataFetcher>();
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
-SherwebFetcher programTest = new SherwebFetcher();
-programTest.Init();
-programTest.CreateWorkers();
-await programTest.GetInformationFromApi(DateTime.Now);
+
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+logger.LogInformation("Application is Starting !!! It's official, logs work at least for Program.cs...");
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -41,6 +43,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.Run();
