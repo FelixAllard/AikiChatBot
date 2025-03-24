@@ -24,10 +24,12 @@ public class OperationResult<T>
         T result = default
     )
     {
-        Message = message;
+        
         Status = status;
         Exception = exception;
         Result = result;
+        //Message must be last so that Exception are registered inside the class before the logging happens
+        Message = message;
         
         
     }
@@ -54,7 +56,7 @@ public class OperationResult<T>
             if(Exception == null)
                 logger.LogInformation(_message);
             else
-                logger.LogError(_message);
+                logger.LogError(_message + $" Error {Exception.GetType().ToString()} : " + Exception.Message);
         }
     }
     /// <summary>

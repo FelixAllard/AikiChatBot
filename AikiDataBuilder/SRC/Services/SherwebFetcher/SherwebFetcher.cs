@@ -31,6 +31,7 @@ public class SherwebFetcher : IApiFetcher
         SherwebRequestManager requestManager 
     )
     {
+        Workers = new List<IHttpWorker>();
         _httpClient = httpClientFactory.CreateClient();
         _sherwebDbContext = sherwebDbContext;
         _configuration = configuration;
@@ -271,6 +272,7 @@ public class SherwebFetcher : IApiFetcher
                     }
                     catch (Exception ex)
                     {
+                        throw;
                         Console.WriteLine($"Error processing request: {ex.Message}");
                     }
                 }

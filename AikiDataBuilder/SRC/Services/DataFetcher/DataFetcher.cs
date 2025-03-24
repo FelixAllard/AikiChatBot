@@ -27,12 +27,43 @@ public class DataFetcher
         
     )
     {
+        
+        // Null check for IHttpClientFactory
+        if (httpClientFactory == null)
+        {
+            throw new ArgumentNullException(nameof(httpClientFactory), "HttpClientFactory cannot be null");
+        }
+
+        // Null check for IConfiguration
+        if (configuration == null)
+        {
+            throw new ArgumentNullException(nameof(configuration), "Configuration cannot be null");
+        }
+
+        // Null check for SherwebDbContext
+        if (sherwebDbContext == null)
+        {
+            throw new ArgumentNullException(nameof(sherwebDbContext), "SherwebDbContext cannot be null");
+        }
+
+        // Null check for ILogger<DataFetcher>
+        if (logger == null)
+        {
+            throw new ArgumentNullException(nameof(logger), "Logger cannot be null");
+        }
+
+        // Null check for IServiceProvider
+        if (serviceProvider == null)
+        {
+            throw new ArgumentNullException(nameof(serviceProvider), "ServiceProvider cannot be null");
+        }
+
+        // Initialize class variables
         HttpClient = httpClientFactory.CreateClient();
         Configuration = configuration;
         SherwebDbContext = sherwebDbContext;
         _logger = logger;
         _serviceProvider = serviceProvider;
-        _logger.LogInformation("WE REACHED THIS STATEMENT");
     }
     
     /// <summary>
@@ -48,15 +79,28 @@ public class DataFetcher
         try
         {
             // Use dependency injection to resolve instances
-            List<IApiFetcher> apiFetchers = _serviceProvider.GetServices<IApiFetcher>().ToList();
-
-            Fetchers = apiFetchers;
-            result = new OperationResult<List<IApiFetcher>>(
-                "Successfully fetched data", 
-                OperationResultStatus.Success, 
-                null, 
-                apiFetchers
-            );
+            var temp = _serviceProvider.GetServices<IApiFetcher>();
+            _logger.LogWarning("TEMPREACHED");
+            List<IApiFetcher> apiFetchers = temp.ToList();
+            if (apiFetchers == null)
+            {
+                _logger.LogError("API Fetchers collection is null.");
+                result = new OperationResult<List<IApiFetcher>>(
+                    "Failed to fetch data: API Fetchers list is null",
+                    OperationResultStatus.Failed
+                );
+            }
+            else
+            {
+                _logger.LogInformation("Fetched them all!");
+                Fetchers = apiFetchers;
+                result = new OperationResult<List<IApiFetcher>>(
+                    "Successfully fetched all API Fetchers",
+                    OperationResultStatus.Success,
+                    null,
+                    apiFetchers
+                );
+            }
         }
         catch (Exception ex)
         {

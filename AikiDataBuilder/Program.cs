@@ -32,18 +32,24 @@ builder.Services.AddDbContext<SherwebDbContext>(options =>
     )
 );
 //Finds all the implementation of IApiFetcher and register them for DI
+var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic).ToArray();
 builder.Services.Scan(scan => scan
-    .FromAssemblyOf<IApiFetcher>()
+    .FromAssemblies(assemblies)
     .AddClasses(classes => classes.AssignableTo<IApiFetcher>())
     .AsImplementedInterfaces()
     .WithScopedLifetime()
 );
+
 builder.Services.Scan(scan => scan
-    .FromAssemblyOf<IRequestManager>()
+    .FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())
     .AddClasses(classes => classes.AssignableTo<IRequestManager>())
     .AsImplementedInterfaces()
     .WithScopedLifetime()
 );
+//builder.Services.AddScoped<IApiFetcher, SherwebFetcher>();
+
+
+
 
 //Http client that will be used in requests
 builder.Services.AddHttpClient();
@@ -54,12 +60,8 @@ builder.Services.AddScoped<SherwebRequestManager>();
 
 builder.Services.AddControllers();
 
+
 var app = builder.Build();
-
-
-var logger = app.Services.GetRequiredService<ILogger<Program>>();
-logger.LogInformation("Application is Starting !!! It's official, logs work at least for Program.cs...");
-
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

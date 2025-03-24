@@ -4,6 +4,9 @@ using AikiDataBuilder.Model.Sherweb.Database.Enumerators;
 
 namespace AikiDataBuilder.Model.Sherweb.Database;
 
+/// <summary>
+/// The Sherweb Model, This is used to create the DB Context and is ideally not directly used
+/// </summary>
 public class SherwebModel
 {
     [Key]
@@ -15,7 +18,6 @@ public class SherwebModel
     public virtual ReceivableCharges ReceivableCharges { get; set; }
     public virtual List<Subscription> Subscriptions { get; set; }
 }
-
 public class PlatformUsage
 {
     [Key]

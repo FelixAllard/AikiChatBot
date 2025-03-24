@@ -18,15 +18,13 @@ public class DataBuilderController : ControllerBase
     {
         _dataFetcher = dataFetcher;
         _logger = logger;
-        _logger.LogInformation("BUILT THE DATABUILDERCONTROLLER");
     }
     [HttpGet]
     public async Task<IActionResult> GetEverything()
     {
-        _logger.LogInformation("GET EVERYTHING");
         _dataFetcher.GetApiFetchers(); // Ensure this does not need to be awaited
         await _dataFetcher.ExecuteAllFetchersAsync(); // Await the async method
-        return Ok("Did things ong");
+        return Ok("Ok blud, nothing is implemented. DEV MESSAGE");
     }
 
 }
