@@ -12,10 +12,10 @@ public abstract class Request
 {
     public string Url { get; set; }
     protected HttpClient _httpClient;
-    protected Dictionary<string, string> _headers;
-    protected List<KeyValuePair<string, string>> UrlEncodedFormContent;
+    protected Dictionary<string, string> _headers = new Dictionary<string, string>();
+    protected List<KeyValuePair<string, string>> UrlEncodedFormContent = new List<KeyValuePair<string, string>>();
     protected JsonContent _jsonContent;
-    protected Dictionary<string, string> _queryParameters;
+    protected Dictionary<string, string> _queryParameters = new Dictionary<string, string>();
     protected SherwebDbContext _sherwebDBContext;
 
     public Request(
@@ -23,6 +23,9 @@ public abstract class Request
         SherwebDbContext sherwebDBContext
         )
     {
+        UrlEncodedFormContent = new List<KeyValuePair<string, string>>();
+        _headers = new Dictionary<string, string>();
+        _queryParameters = new Dictionary<string, string>();
         _httpClient = clientFactory;
         _sherwebDBContext = sherwebDBContext;
         

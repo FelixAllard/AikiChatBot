@@ -23,12 +23,14 @@ public class SherwebFetcher : IApiFetcher
     private IConfiguration _configuration;
     private HttpClient _httpClient;
     private SherwebDbContext _sherwebDbContext;
+    private ILogger<SherwebFetcher> _logger;
 
     public SherwebFetcher(
         IHttpClientFactory httpClientFactory,
         SherwebDbContext sherwebDbContext,
         IConfiguration configuration,
-        SherwebRequestManager requestManager 
+        SherwebRequestManager requestManager,
+        ILogger<SherwebFetcher> logger
     )
     {
         Workers = new List<IHttpWorker>();
@@ -36,6 +38,7 @@ public class SherwebFetcher : IApiFetcher
         _sherwebDbContext = sherwebDbContext;
         _configuration = configuration;
         this.requestManager = requestManager;
+        _logger = logger;
         
         var resultCreationWorkers = CreateWorkers();
         if(resultCreationWorkers.Status!= OperationResultStatus.Success)
@@ -255,15 +258,14 @@ public class SherwebFetcher : IApiFetcher
                         var (hasRequest, request, shouldStop) = operationResult.Result;
                         if (shouldStop)
                         {
-                            Console.WriteLine("No more requests will be available, stopping worker.");
+                            _logger.LogWarning("No more requests will be available, stopping worker.");
                             break;
                         }
 
                         if (hasRequest && request != null)
                         {
                             var result = await worker.SendRequest(request, 3000);
-                            Console.WriteLine($"Processed request: {result}");
-
+                            _logger.LogInformation($"Processed request: {result}");
                             // Increment the counter
                             requestCounter.Increment();
                         }
@@ -275,8 +277,9 @@ public class SherwebFetcher : IApiFetcher
                     }
                     catch (Exception ex)
                     {
-                        throw;
-                        Console.WriteLine($"Error processing request: {ex.Message}");
+
+                        _logger.LogError($"Error processing request: {ex.Message}\nStack Trace : {ex.StackTrace}");
+
                     }
                 }
             }));
