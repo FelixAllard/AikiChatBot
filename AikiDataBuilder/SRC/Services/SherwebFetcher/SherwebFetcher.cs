@@ -130,6 +130,7 @@ public class SherwebFetcher : IApiFetcher
     [Obsolete("Doesn't take into consideration the API's rate limit of concurrent request")]
     public OperationResult<List<IHttpWorker>> CreateWorkers(int workersCount)
     {
+        Workers = new List<IHttpWorker>();
         var credidentials = GetCredentials();
         
         if (credidentials.Status != OperationResultStatus.Success)
@@ -167,6 +168,7 @@ public class SherwebFetcher : IApiFetcher
 
     public OperationResult<List<IHttpWorker>> CreateWorkers()
     {
+        Workers = new List<IHttpWorker>();
         var credidentials = GetCredentials();
         
         if (credidentials.Status != OperationResultStatus.Success)
@@ -203,6 +205,7 @@ public class SherwebFetcher : IApiFetcher
     [Obsolete("Create the workers based on pre existing workers as reference. Idk why we'd want that but it's there if we need it")]
     public async Task<OperationResult<List<IHttpWorker>>> CreateWorkers(List<IHttpWorker> workers)
     {
+        Workers = new List<IHttpWorker>();
         List<Task> workerTasks = new List<Task>();
 
         for (int i = 0; i < _numberOfWorkers; i++)

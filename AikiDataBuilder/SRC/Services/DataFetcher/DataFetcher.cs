@@ -128,7 +128,6 @@ public class DataFetcher
         var tasks = Fetchers.Select(fetcher => Task.Run(async () =>
         {
             var stopwatch = Stopwatch.StartNew();
-            fetcher.CreateWorkers();// Create the workers
             await fetcher.GetInformationFromApi(DateTime.Now); // Call the async method on each fetcher
             stopwatch.Stop();
 
