@@ -24,6 +24,22 @@ public class SherwebFetcher : IApiFetcher
     private HttpClient _httpClient;
     private SherwebDbContext _sherwebDbContext;
 
+    public SherwebFetcher(
+        IHttpClientFactory httpClientFactory,
+        SherwebDbContext sherwebDbContext,
+        IConfiguration configuration,
+        SherwebRequestManager requestManager 
+    )
+    {
+        _httpClient = httpClientFactory.CreateClient();
+        _sherwebDbContext = sherwebDbContext;
+        _configuration = configuration;
+        this.requestManager = requestManager;
+        
+        var resultCreationWorkers = CreateWorkers();
+        if(resultCreationWorkers.Status!= OperationResultStatus.Success)
+            throw new ApplicationException("Failed to create workers For Sherweb Fetcher");
+    }
 
     public OperationResult<bool> Init()
     {
@@ -42,11 +58,9 @@ public class SherwebFetcher : IApiFetcher
             keys = GetCredentials().Result;
             
             requestManager = new SherwebRequestManager(
-                _numberOfWorkers, 
                 _httpClient,
                 _configuration, 
-                _sherwebDbContext, 
-                keys
+                _sherwebDbContext
             );
             var resultCreationWorkers = CreateWorkers();
             if(resultCreationWorkers.Status!= OperationResultStatus.Success)
@@ -72,6 +86,7 @@ public class SherwebFetcher : IApiFetcher
 
     public OperationResult<Dictionary<string, string>> GetCredentials()
     {
+        
         string baseUrl = _configuration["SherwebCredentials:BaseUrl"];
         string subscriptionKey = _configuration["SherwebCredentials:SubscriptionKey"];
         string clientId = _configuration["SherwebCredentials:ClientId"];

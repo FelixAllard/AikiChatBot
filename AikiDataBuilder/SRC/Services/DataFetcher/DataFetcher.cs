@@ -16,12 +16,14 @@ public class DataFetcher
     private readonly IConfiguration Configuration;
     private readonly SherwebDbContext SherwebDbContext;
     private readonly ILogger<DataFetcher> _logger;
+    private readonly IServiceProvider _serviceProvider;
 
     public DataFetcher(
         IHttpClientFactory httpClientFactory, 
         IConfiguration configuration, 
         SherwebDbContext sherwebDbContext,
-        ILogger<DataFetcher> logger
+        ILogger<DataFetcher> logger,
+        IServiceProvider serviceProvider
         
     )
     {
@@ -29,6 +31,7 @@ public class DataFetcher
         Configuration = configuration;
         SherwebDbContext = sherwebDbContext;
         _logger = logger;
+        _serviceProvider = serviceProvider;
         _logger.LogInformation("WE REACHED THIS STATEMENT");
     }
     
@@ -44,11 +47,9 @@ public class DataFetcher
         var interfaceType = typeof(IApiFetcher);
         try
         {
-            List<IApiFetcher> apiFetchers = Assembly.GetExecutingAssembly()
-                .GetTypes()
-                .Where(t => interfaceType.IsAssignableFrom(t) && t.IsClass && !t.IsAbstract)
-                .Select(t => (IApiFetcher)Activator.CreateInstance(t)!) // Create instance of the type
-                .ToList();
+            // Use dependency injection to resolve instances
+            List<IApiFetcher> apiFetchers = _serviceProvider.GetServices<IApiFetcher>().ToList();
+
             Fetchers = apiFetchers;
             result = new OperationResult<List<IApiFetcher>>(
                 "Successfully fetched data", 
@@ -60,7 +61,7 @@ public class DataFetcher
         catch (Exception ex)
         {
             result = new OperationResult<List<IApiFetcher>>(
-                $"Failed to fetch data from {nameof(ex)}", 
+                $"Failed to fetch data: {ex.Message}", 
                 OperationResultStatus.Failed, 
                 ex
             );
@@ -76,7 +77,7 @@ public class DataFetcher
     {
         if (Fetchers == null || Fetchers.Count == 0)
         {
-            Console.WriteLine("No fetchers found.");
+            _logger.LogWarning("No API Fetchers configured");
             return;
         }
         // This will iterate Through every API callers and start the Fetching process

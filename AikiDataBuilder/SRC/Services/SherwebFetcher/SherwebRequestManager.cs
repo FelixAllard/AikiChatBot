@@ -11,9 +11,9 @@ namespace AikiDataBuilder.Services.SherwebFetcher;
 public class SherwebRequestManager : IRequestManager
 {
     public ConcurrentQueue<Request> Requests { get; set; }
-    public int AvailableWorkers { get; set; }
-    
-    public int MaxWorkers { get; }
+    public int AvailableWorkers { get; set; } = 3;
+
+    public int MaxWorkers { get; } = 3;
     private IConfiguration Configuration { get; }
     private HttpClient HttpClient { get; }
     private SherwebDbContext SherwebDbContext { get; }
@@ -38,19 +38,57 @@ public class SherwebRequestManager : IRequestManager
 
 
     public SherwebRequestManager(
-        int workersNumber, 
         HttpClient httpClient, 
         IConfiguration config, 
-        SherwebDbContext sherwebDbContext,
-        Dictionary<string, string> keys
+        SherwebDbContext sherwebDbContext
     )
     {
-        MaxWorkers = workersNumber;
-        AvailableWorkers = MaxWorkers;
         HttpClient = httpClient;
         Configuration = config;
         SherwebDbContext = sherwebDbContext;
-        Keys = keys;
+        Keys = GetCredentials().Result;
+    }
+    public OperationResult<Dictionary<string, string>> GetCredentials()
+    {
+        
+        string baseUrl = Configuration["SherwebCredentials:BaseUrl"];
+        string subscriptionKey = Configuration["SherwebCredentials:SubscriptionKey"];
+        string clientId = Configuration["SherwebCredentials:ClientId"];
+        string clientSecret = Configuration["SherwebCredentials:ClientSecret"];
+        if (
+            string.IsNullOrWhiteSpace(baseUrl)
+            || string.IsNullOrWhiteSpace(subscriptionKey)
+            || string.IsNullOrWhiteSpace(clientId)
+            || string.IsNullOrWhiteSpace(clientSecret)
+        )
+        {
+            return new OperationResult<Dictionary<string, string>>
+            {
+                Result = new Dictionary<string, string>
+                {
+                    { "BaseUrl", baseUrl },
+                    { "SubscriptionKey", subscriptionKey },
+                    { "ClientId", clientId },
+                    { "ClientSecret", clientId },
+                },
+                Exception = new FormatException("The credentials fetch failed for one or more values"),
+                Message = "Make sure the credentials are filled in the appsettings.json file.",
+                Status = OperationResultStatus.Critical
+            };
+        }
+
+        return new OperationResult<Dictionary<string, string>>
+        {
+            Result = new Dictionary<string, string>
+            {
+                { "BaseUrl", baseUrl },
+                { "SubscriptionKey", subscriptionKey },
+                { "ClientId", clientId },
+                { "ClientSecret", clientId },
+            },
+            Message = "All the information was available! Successfully fetched from AppSettings.json file.",
+            Status = OperationResultStatus.Success
+        };
     }
     
 
