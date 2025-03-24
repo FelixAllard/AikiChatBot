@@ -1,4 +1,6 @@
-﻿namespace AikiDataBuilder.Model.SystemResponse;
+﻿using Microsoft.IdentityModel.Tokens;
+
+namespace AikiDataBuilder.Model.SystemResponse;
 using Microsoft.Extensions.Logging;
 /// <summary>
 /// This class will be used in order to have efficient returns for functions 
@@ -16,7 +18,7 @@ public class OperationResult<T>
     /// <param name="exception">If an error occured, we put the error inside</param>
     /// <param name="result">The result which will be of the class given type</param>
     public OperationResult(
-        string message = "Empty Message", 
+        string message = "", 
         OperationResultStatus status = OperationResultStatus.Success, 
         Exception exception = null, 
         T result = default
@@ -31,6 +33,8 @@ public class OperationResult<T>
     }
     /// <summary>
     /// A message we can attach to the result
+    /// Currently configured the get to Pass in Logs
+    /// into the console so every function can easily be tracked
     /// </summary>
 
     public string Message
@@ -39,13 +43,18 @@ public class OperationResult<T>
         set
         {
             _message = value;
+            if (_message.IsNullOrEmpty())
+                return;
             var factory = LoggerFactory.Create(builder =>
             {
                 builder.AddConsole(); // You can add other providers like Debug, File, etc.
             });
 
             ILogger<OperationResult<T>> logger = factory.CreateLogger<OperationResult<T>>();
-            logger.LogInformation(_message);
+            if(Exception == null)
+                logger.LogInformation(_message);
+            else
+                logger.LogError(_message);
         }
     }
     /// <summary>
