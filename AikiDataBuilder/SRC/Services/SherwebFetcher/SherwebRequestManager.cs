@@ -139,15 +139,29 @@ public class SherwebRequestManager : IRequestManager
                         ]
                     }
                 });
+                retrievalStep[0] = 1;
                 return await Task.FromResult(new OperationResult<(bool hasRequest, Request? request, bool shouldStop)>()
                 {
                     Result = (
                         true, 
                         getAllCustomerRequest,
                         false
-                    )
+                    ),
+                    Message = "Get all customers successfully sent",
+                    Status = OperationResultStatus.Success
                 });
-
+            default:
+                return await Task.FromResult(new OperationResult<(bool hasRequest, Request? request, bool shouldStop)>()
+                {
+                    Message = "Not Finding a request to give back",
+                    Result =(
+                    true,
+                    null,
+                    true
+                    ),
+                    Status = OperationResultStatus.Success
+                    
+                });
         }
 
         return await Task.FromResult(new OperationResult<(bool hasRequest, Request? request, bool shouldStop)>()
