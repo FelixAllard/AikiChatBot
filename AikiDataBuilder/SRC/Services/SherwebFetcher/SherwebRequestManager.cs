@@ -29,6 +29,8 @@ public class SherwebRequestManager : IRequestManager
         {
             if (MaxWorkers==AvailableWorkers)
             {
+                //Will Continue the queue creation
+                _waitHandle.Set();
                 return true;
             }
             return false;
@@ -158,6 +160,7 @@ public class SherwebRequestManager : IRequestManager
         //TODO never returns a should stop and as such will never result in a End
         if (_requestQueue.TryDequeue(out var request))
         {
+            
             return new OperationResult<(
                 bool hasRequest, 
                 Request? request, 
@@ -189,73 +192,67 @@ public class SherwebRequestManager : IRequestManager
 
 
     private int[] retrievalStep = [0, 0];
+    private bool waitForAllWorkers = false;
+    private readonly ManualResetEventSlim _waitHandle = new ManualResetEventSlim(false);
     public async Task<OperationResult<(bool hasRequest, Request? request, bool shouldStop)>> QueueNextRequests()
     {
-        if(AllWorkersAvailable)
-            awaitingOtherWorkers = false;
-        if (awaitingOtherWorkers)
-            return new OperationResult<(bool hasRequest, Request? request, bool shouldStop)>()
-            {
-                Message = $"Currently awaiting all workers to be available",
-                Status = OperationResultStatus.PartialSuccess,
-                Result = (
-                    false, 
-                    null, 
-                    false
-                )
-            };
-        // Here we will put all the steps inside a switch
-        switch (retrievalStep[0])
+        while (true)
         {
-            case 0:
-                var getAllCustomerRequest = new GetAllCustomers(
-                    HttpClient,
-                    SherwebDbContext
-                );
-                getAllCustomerRequest.SetBearerToken(bearerToken);
-                getAllCustomerRequest.SetHeaderVariables(new Dictionary<string, string>()
+            //Will block the infinite loop until all workers are available
+            _waitHandle.Wait();
+            _waitHandle.Reset();
+            
+            if(AllWorkersAvailable)
+                awaitingOtherWorkers = false;
+            if (awaitingOtherWorkers)
+                return new OperationResult<(bool hasRequest, Request? request, bool shouldStop)>()
                 {
-                    {
-                        "Ocp-Apim-Subscription-Key", 
-                        Keys[
-                            "SubscriptionKey"
-                        ]
-                    }
-                });
-                return await Task.FromResult(new OperationResult<(bool hasRequest, Request? request, bool shouldStop)>()
-                {
+                    Message = $"Currently awaiting all workers to be available",
+                    Status = OperationResultStatus.PartialSuccess,
                     Result = (
-                        true, 
-                        getAllCustomerRequest,
+                        false, 
+                        null, 
                         false
-                    ),
-                    Message = "Get all customers successfully sent",
-                    Status = OperationResultStatus.Success
-                });
-            default:
-                return await Task.FromResult(new OperationResult<(bool hasRequest, Request? request, bool shouldStop)>()
-                {
-                    Message = "Not Finding a request to give back",
-                    Result =(
-                    true,
-                    null,
-                    true
-                    ),
-                    Status = OperationResultStatus.Success
-                    
-                });
+                    )
+                };
+            // Here we will put all the steps inside a switch
+            switch (retrievalStep[0])
+            {
+                case 0:
+                    var getAllCustomerRequest = new GetAllCustomers(
+                        HttpClient,
+                        SherwebDbContext
+                    );
+                    getAllCustomerRequest.SetBearerToken(bearerToken);
+                    getAllCustomerRequest.SetHeaderVariables(new Dictionary<string, string>()
+                    {
+                        {
+                            "Ocp-Apim-Subscription-Key", 
+                            Keys[
+                                "SubscriptionKey"
+                            ]
+                        }
+                    });
+                    AddRequest(getAllCustomerRequest);
+                    break;
+                case 1:
+                    break;
+                default:
+
+                    return await Task.FromResult(new OperationResult<(bool hasRequest, Request? request, bool shouldStop)>()
+                    {
+                        Message = "Not Finding a request to give back",
+                        Result =(
+                        true,
+                        null,
+                        true
+                        ),
+                        Status = OperationResultStatus.Success
+                        
+                    });
+            }
         }
 
-        return await Task.FromResult(new OperationResult<(bool hasRequest, Request? request, bool shouldStop)>()
-        {
-            Message = $"Finished all steps of retrieval from sherweb. Stopping retrieval",
-            Status = OperationResultStatus.Success,
-            Result = (
-                false, 
-                null!,
-                true
-            )
-        });
     }
     
     
