@@ -283,6 +283,7 @@ public class SherwebFetcher : IApiFetcher
                     }
                 }
             }));
+            await Task.Delay(200);
         }
 
         await Task.WhenAll(tasks);
