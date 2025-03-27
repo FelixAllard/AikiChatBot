@@ -1,9 +1,14 @@
 ﻿using System.Collections.Concurrent;
 using System.ComponentModel.Design;
+using System.Net;
+using System.Text.Json;
 using AikiDataBuilder.Database;
 using AikiDataBuilder.Model.SystemResponse;
+using AikiDataBuilder.Services.SherwebFetcher.Model;
 using AikiDataBuilder.Services.SherwebFetcher.Requests;
 using AikiDataBuilder.Services.Workers;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Pomelo.EntityFrameworkCore.MySql.Query.ExpressionTranslators.Internal;
 
 
 namespace AikiDataBuilder.Services.SherwebFetcher;
@@ -12,14 +17,13 @@ public class SherwebRequestManager : IRequestManager
 {
     public ConcurrentQueue<Request> Requests { get; set; }
     public int AvailableWorkers { get; set; } = 3;
-
     public int MaxWorkers { get; } = 3;
     private IConfiguration Configuration { get; }
-    private HttpClient HttpClient { get; }
     private SherwebDbContext SherwebDbContext { get; }
     private Dictionary<string, string> Keys { get; }
     private CancellationTokenSource? _cts;
     private Task? _backgroundTask;
+    private IHttpClientFactory _httpClientFactory;
     
     
     private string bearerToken;
@@ -42,18 +46,22 @@ public class SherwebRequestManager : IRequestManager
 
 
     public SherwebRequestManager(
-        HttpClient httpClient, 
         IConfiguration config, 
-        SherwebDbContext sherwebDbContext
+        SherwebDbContext sherwebDbContext,
+        IHttpClientFactory httpClientFactory
     )
     {
-        HttpClient = httpClient;
+        _requestQueue = new ConcurrentQueue<Request>();
         Configuration = config;
         SherwebDbContext = sherwebDbContext;
         Keys = GetCredentials().Result;
+        _httpClientFactory = httpClientFactory;
+        
+        //This will start the task Population process
+        StartTask();
     }
     /// <summary>
-    /// This function  is resposnbiel to start the async loop task that will add all the request to the
+    /// This function  is responsible to start the async loop task that will add all the request to the
     /// Queue
     /// </summary>
     public void StartTask()
@@ -184,7 +192,141 @@ public class SherwebRequestManager : IRequestManager
         };
     }
 
-// Example: Adding new requests safely
+    /// <summary>
+    /// Will reset the authorization Token
+    /// </summary>
+    /// <returns> Returns a string which is the authorization token and a bool which is whether it worker or not</returns>
+    public async Task<OperationResult<(string, bool)>> ResetAuthorizationToken()
+    {
+        HttpClient authorizationRequest = _httpClientFactory.CreateClient();
+        authorizationRequest.Timeout = TimeSpan.FromSeconds(1000);
+        var request = new HttpRequestMessage(HttpMethod.Post, "https://api.sherweb.com/auth/oidc/connect/token");
+
+        var collection = new List<KeyValuePair<string, string>>
+        {
+            new("client_id", Keys["ClientId"]),
+            new("client_secret", Keys["ClientSecret"]),
+            new("scope", "distributor"),
+            new("grant_type", "client_credentials")
+        };
+
+        request.Content = new FormUrlEncodedContent(collection);
+
+        var response = await authorizationRequest.SendAsync(request);
+        if (response.IsSuccessStatusCode)
+        {
+            string jsonResponse = await response.Content.ReadAsStringAsync();
+            var tokenResponse = JsonSerializer.Deserialize<TokenResponse>(jsonResponse, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            if(response.StatusCode!=HttpStatusCode.OK)
+                return await Task.FromResult(new OperationResult<(string, bool)>()
+                {
+                    Result = (tokenResponse?.Access_Token, false),
+                    Message = $"Received a non 200 OK response {response.StatusCode.ToString()}",
+                    Status = OperationResultStatus.Failed
+                }) ;
+            if(tokenResponse == null)
+                return await Task.FromResult(new OperationResult<(string, bool)>()
+                {
+                    Result = (tokenResponse?.Access_Token, false),
+                    Message = "Failed to retrieve access token",
+                    Status = OperationResultStatus.Failed
+                }) ;  
+            bearerToken = tokenResponse.Access_Token;
+            return await Task.FromResult(new OperationResult<(string, bool)>()
+            {
+                Result = (tokenResponse?.Access_Token, true),
+                Message = "Access token retrieved successfully",
+                Status = OperationResultStatus.Success
+            }) ; // Return the access token
+        }
+        else
+        {
+            return await Task.FromResult(new OperationResult<(string, bool)>()
+            {
+                Message = "Failed to retrieve access token",
+                Status = OperationResultStatus.Critical,
+                Exception = new Exception($"Failed to retrieve token: {response.StatusCode}")
+            }) ;
+        }
+        
+    }
+
+    public async Task<OperationResult<bool>> ReturnRequest(Request request, RequestReturnJustification shouldStop, bool critical = false)
+    {
+        var currentReturnedRequest = request;
+        try
+        {
+            if (shouldStop == RequestReturnJustification.UnAuthorized)
+            {
+                var authorizationRequest = await ResetAuthorizationToken();
+                if(authorizationRequest.Status != OperationResultStatus.Success)
+                    return await Task.FromResult(new OperationResult<bool>()
+                    {
+                        Message = "We were not able to refresh the token and " +
+                                  "as such the program results in failure",
+                        Status = OperationResultStatus.Critical,
+                        Exception = authorizationRequest.Exception,
+                        Result = false
+                    });
+                var (bearerToken, successStatus) = authorizationRequest.Result;
+                if(!successStatus)
+                    return await Task.FromResult(new OperationResult<bool>()
+                    {
+                        Message = "The authorization request was a failure",
+                        Status = OperationResultStatus.Critical,
+                        Exception = authorizationRequest.Exception,
+                        Result = false
+                    });
+                currentReturnedRequest.SetBearerToken(bearerToken);
+                //Return to queue
+                AddRequest(currentReturnedRequest);
+                return await Task.FromResult(new OperationResult<bool>()
+                {
+                    Message = "Successfully put the request back in the queue and recreated authorization token",
+                    Status = OperationResultStatus.Critical,
+                    Result = true
+                });
+            }
+            else if(shouldStop == RequestReturnJustification.NotFound)
+            {
+                return await Task.FromResult(new OperationResult<bool>()
+                {
+                    Message = "We were not able to find the endpoint specified",
+                    Status = OperationResultStatus.Critical,
+                    Exception = new ("The endpoint we searched for does not exist, application Compromised"),
+                    Result = false
+                });
+            }
+            else if (shouldStop == RequestReturnJustification.InternalServerError)
+            {
+                return await Task.FromResult(new OperationResult<bool>()
+                {
+                    Message = "The response server failer to execute the request",
+                    Status = OperationResultStatus.Critical,
+                    Exception = new ("The endpoint we searched for does not exist, application Compromised"),
+                    Result = false
+                });
+            }
+            else
+            {
+                return await Task.FromResult(new OperationResult<bool>()
+                {
+                    Message = "A Unprepared exception lead to program runtime to fail",
+                    Status = OperationResultStatus.Critical,
+                    Exception = new ("We will not be able to run the request and the program will stop"),
+                    Result = false
+                });
+                
+            }
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    // Example: Adding new requests safely
     public void AddRequest(Request request)
     {
         _requestQueue.Enqueue(request);
@@ -193,7 +335,11 @@ public class SherwebRequestManager : IRequestManager
 
     private int[] retrievalStep = [0, 0];
     private bool waitForAllWorkers = false;
+    /// <summary>
+    /// The task Scheduler trigger lever
+    /// </summary>
     private readonly ManualResetEventSlim _waitHandle = new ManualResetEventSlim(false);
+
     public async Task<OperationResult<(bool hasRequest, Request? request, bool shouldStop)>> QueueNextRequests()
     {
         while (true)
@@ -202,25 +348,13 @@ public class SherwebRequestManager : IRequestManager
             _waitHandle.Wait();
             _waitHandle.Reset();
             
-            if(AllWorkersAvailable)
-                awaitingOtherWorkers = false;
-            if (awaitingOtherWorkers)
-                return new OperationResult<(bool hasRequest, Request? request, bool shouldStop)>()
-                {
-                    Message = $"Currently awaiting all workers to be available",
-                    Status = OperationResultStatus.PartialSuccess,
-                    Result = (
-                        false, 
-                        null, 
-                        false
-                    )
-                };
             // Here we will put all the steps inside a switch
             switch (retrievalStep[0])
             {
                 case 0:
                     var getAllCustomerRequest = new GetAllCustomers(
-                        HttpClient,
+                        //Create a new HttpCLient Every time
+                        _httpClientFactory.CreateClient(),
                         SherwebDbContext
                     );
                     getAllCustomerRequest.SetBearerToken(bearerToken);
@@ -251,6 +385,7 @@ public class SherwebRequestManager : IRequestManager
                         
                     });
             }
+            retrievalStep[0] += 1 ;
         }
 
     }

@@ -52,9 +52,19 @@ public class SherwebWorkers : IHttpWorker
                     Result = response.Result.Result
                     
                 });
+            //Partial Success only ever happens if the status Unauthorized happens
             if (response.Result.Status == OperationResultStatus.PartialSuccess)
             {
-                if (authorizationTryCount > 0)
+                // I will handle the unauthorized in the SherwebFetcher, which will 
+                return await Task.FromResult(new OperationResult<JsonContent>()
+                {
+                    Status = OperationResultStatus.PartialSuccess,
+                    Message = response.Result.Message,
+                    Result = response.Result.Result,
+                    Exception = response.Result.Exception,
+                });
+
+                /*if (authorizationTryCount > 0)
                     return await Task.FromResult(new OperationResult<JsonContent>()
                     {
                         Status = OperationResultStatus.Critical,
@@ -67,7 +77,7 @@ public class SherwebWorkers : IHttpWorker
                 var result = await HandleUnAuthorized(_authentificationRequest, 5000);
                 if(result.Status == OperationResultStatus.Success)
                     // Recursive call so that it is easier to understand
-                    return await SendRequest(request, timeout);
+                    return await SendRequest(request, timeout);*/
             }
             finalResult = response.Result.Result;
         }

@@ -45,4 +45,18 @@ public interface IRequestManager
     /// <br/> <b>ShouldStop </b> : If the worker is done
     /// </returns>
     public Task<OperationResult<(bool hasRequest, Request? request, bool shouldStop)>> GetNextRequest();
+    
+    /// <summary>
+    /// This function will be called when a request doesn't go as expected, this way, we will have an easy way to modify
+    /// the request and prepare for it's next call. It will also be used for unauthorized.
+    /// </summary>
+    /// <param name="request">The request to repeat and repair</param>
+    /// <param name="shouldStop">What reason for which the request failed</param>
+    /// <param name="critical">Should the application stop completly</param>
+    /// <returns>Asynchronous Operation Result Bool representing if the application flow will continue</returns>
+    public Task<OperationResult<bool>> ReturnRequest(
+        Request request, 
+        RequestReturnJustification shouldStop, 
+        bool critical = false
+    );
 }

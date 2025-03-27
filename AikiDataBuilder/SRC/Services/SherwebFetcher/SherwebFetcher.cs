@@ -22,6 +22,7 @@ public class SherwebFetcher : IApiFetcher
     
     private IConfiguration _configuration;
     private HttpClient _httpClient;
+    private IHttpClientFactory _httpClientFactory;
     private SherwebDbContext _sherwebDbContext;
     private ILogger<SherwebFetcher> _logger;
 
@@ -34,7 +35,7 @@ public class SherwebFetcher : IApiFetcher
     )
     {
         Workers = new List<IHttpWorker>();
-        _httpClient = httpClientFactory.CreateClient();
+        _httpClientFactory = httpClientFactory;
         _sherwebDbContext = sherwebDbContext;
         _configuration = configuration;
         this.requestManager = requestManager;
@@ -62,9 +63,9 @@ public class SherwebFetcher : IApiFetcher
             keys = GetCredentials().Result;
             
             requestManager = new SherwebRequestManager(
-                _httpClient,
                 _configuration, 
-                _sherwebDbContext
+                _sherwebDbContext,
+                _httpClientFactory
             );
             var resultCreationWorkers = CreateWorkers();
             if(resultCreationWorkers.Status!= OperationResultStatus.Success)
@@ -265,6 +266,14 @@ public class SherwebFetcher : IApiFetcher
                         if (hasRequest && request != null)
                         {
                             var result = await worker.SendRequest(request, 3000);
+                            
+                            if(result.Status == OperationResultStatus.PartialSuccess)
+                                requestManager.ReturnRequest(
+                                    request, 
+                                    RequestReturnJustification.UnAuthorized, 
+                                    false
+                                );
+                            
                             _logger.LogInformation($"Processed request: {result}");
                             // Increment the counter
                             requestCounter.Increment();
