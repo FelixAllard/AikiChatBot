@@ -146,8 +146,20 @@ public class SherwebRequestManager : IRequestManager
             Status = OperationResultStatus.Success
         };
     }
-    
-    
+
+
+    public OperationResult<bool> ActivateWorker(int numberOfWorkers = 1)
+    {
+        AvailableWorkers += numberOfWorkers;
+        return new OperationResult<bool>()
+        {
+            Message = $"Worker count {numberOfWorkers}",
+            Result = AllWorkersAvailable,
+            Exception = null,
+            Status = OperationResultStatus.Success
+        };
+    }
+
     public OperationResult<bool> ReturnWorker(int numberOfWorkers = 1)
     {
         AvailableWorkers -= numberOfWorkers;

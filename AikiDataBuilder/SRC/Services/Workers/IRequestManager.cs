@@ -24,6 +24,8 @@ public interface IRequestManager
     internal int MaxWorkers { get; }
     internal bool AllWorkersAvailable { get;  }
     
+    public OperationResult<bool> ActivateWorker(int numberOfWorkers = 1);
+    
     /// <summary>
     /// Will be called whenever a Worker is done with their task
     /// </summary>

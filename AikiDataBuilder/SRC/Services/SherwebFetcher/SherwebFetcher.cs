@@ -265,16 +265,18 @@ public class SherwebFetcher : IApiFetcher
 
                         if (hasRequest && request != null)
                         {
+                            requestManager.ActivateWorker();
                             var result = await worker.SendRequest(request, 3000);
                             
                             if(result.Status == OperationResultStatus.PartialSuccess)
-                                requestManager.ReturnRequest(
+                                await requestManager.ReturnRequest(
                                     request, 
                                     RequestReturnJustification.UnAuthorized, 
                                     false
                                 );
                             
                             _logger.LogInformation($"Processed request: {result}");
+                            requestManager.ReturnWorker();
                             // Increment the counter
                             requestCounter.Increment();
                         }
