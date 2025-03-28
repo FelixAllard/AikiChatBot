@@ -3,6 +3,7 @@ using System.ComponentModel.Design;
 using System.Net;
 using System.Text.Json;
 using AikiDataBuilder.Database;
+using AikiDataBuilder.Exceptions;
 using AikiDataBuilder.Model.SystemResponse;
 using AikiDataBuilder.Services.SherwebFetcher.Model;
 using AikiDataBuilder.Services.SherwebFetcher.Requests;
@@ -24,6 +25,7 @@ public class SherwebRequestManager : IRequestManager
     private CancellationTokenSource? _cts;
     private Task? _backgroundTask;
     private IHttpClientFactory _httpClientFactory;
+    private bool noMoreRequest = false;
     
     
     private string bearerToken;
@@ -56,9 +58,9 @@ public class SherwebRequestManager : IRequestManager
         SherwebDbContext = sherwebDbContext;
         Keys = GetCredentials().Result;
         _httpClientFactory = httpClientFactory;
-        
         //This will start the task Population process
         StartTask();
+        _waitHandle.Set();
     }
     /// <summary>
     /// This function  is responsible to start the async loop task that will add all the request to the
@@ -178,6 +180,22 @@ public class SherwebRequestManager : IRequestManager
     public async Task<OperationResult<(bool hasRequest, Request? request, bool shouldStop)>> GetNextRequest()
     {
         //TODO never returns a should stop and as such will never result in a End
+        if (_requestQueue.IsEmpty)
+        {
+            if (noMoreRequest)
+                return await Task.FromResult(new OperationResult<(bool hasRequest, Request? request, bool shouldStop)>()
+                {
+                    Message = "Finished getting requests",
+                    Result = (
+                        false,
+                        null,
+                        true
+                    ),
+                    Status = OperationResultStatus.PartialSuccess,
+                    Exception = new NoRequestLeftException("No request available.")
+                });
+        }
+            
         if (_requestQueue.TryDequeue(out var request))
         {
             
@@ -356,6 +374,7 @@ public class SherwebRequestManager : IRequestManager
     {
         while (true)
         {
+            Console.WriteLine("LIFE IS GOOD");
             //Will block the infinite loop until all workers are available
             _waitHandle.Wait();
             _waitHandle.Reset();
@@ -381,10 +400,8 @@ public class SherwebRequestManager : IRequestManager
                     });
                     AddRequest(getAllCustomerRequest);
                     break;
-                case 1:
-                    break;
                 default:
-
+                    noMoreRequest = true;
                     return await Task.FromResult(new OperationResult<(bool hasRequest, Request? request, bool shouldStop)>()
                     {
                         Message = "Not Finding a request to give back",

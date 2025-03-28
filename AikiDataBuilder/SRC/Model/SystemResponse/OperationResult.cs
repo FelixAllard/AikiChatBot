@@ -1,4 +1,5 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using System.Diagnostics;
+using Microsoft.IdentityModel.Tokens;
 
 namespace AikiDataBuilder.Model.SystemResponse;
 using Microsoft.Extensions.Logging;
@@ -10,6 +11,8 @@ using Microsoft.Extensions.Logging;
 public class OperationResult<T>
 {
     private string _message;
+
+    private Type? _instantiaserType;
     /// <summary>
     /// Optional Constructor
     /// </summary>
@@ -32,6 +35,13 @@ public class OperationResult<T>
         Message = message;
         
         
+        
+        var stackTrace = new StackTrace();
+        var callingFrame = stackTrace.GetFrame(1); // 1 means the direct caller
+        var callingMethod = callingFrame?.GetMethod();
+        var callingClass = callingMethod?.DeclaringType;
+        _instantiaserType = callingClass;
+        
     }
     /// <summary>
     /// A message we can attach to the result
@@ -47,16 +57,8 @@ public class OperationResult<T>
             _message = value;
             if (_message.IsNullOrEmpty())
                 return;
-            var factory = LoggerFactory.Create(builder =>
-            {
-                builder.AddConsole(); // You can add other providers like Debug, File, etc.
-            });
-
-            ILogger<OperationResult<T>> logger = factory.CreateLogger<OperationResult<T>>();
-            if(Exception == null)
-                logger.LogInformation(_message);
-            else
-                logger.LogError(_message + $" Error {Exception.GetType().ToString()} : " + Exception.Message);
+            
+            LogMessage(_message);
         }
     }
     /// <summary>
@@ -66,11 +68,90 @@ public class OperationResult<T>
     /// <summary>
     /// If any errors, can be fed into this field
     /// </summary>
-    public Exception Exception { get; set; }
+    private Exception _exception;
+    public Exception Exception
+    {
+        get => _exception;
+        set
+        {
+            _exception = value;
+            if(_exception != null)
+                LogMessage($"Encountered {_exception.ToString() } : {_exception.Message}", LogLevel.Error); // Log again when Exception is updated
+        }
+    }
     /// <summary>
     /// The result of the function if any
     /// </summary>
     public T Result { get; set; }
+
+
+    private void LogMessage(string message, LogLevel logLevel = LogLevel.Information)
+    {
+        var factory = LoggerFactory.Create(builder =>
+        {
+            builder.AddConsole(); // You can add other providers like Debug, File, etc.
+        });
+        ;
+        if (_instantiaserType != null)
+        {
+            ILogger logger = factory.CreateLogger(_instantiaserType);
+            switch (logLevel)
+            {
+                case LogLevel.Critical:
+                    logger.LogCritical(_message);
+                    break;
+                case LogLevel.Error:
+                    logger.LogError(_message);
+                    break;
+                case LogLevel.Warning:
+                    logger.LogWarning(_message);
+                    break;
+                case LogLevel.Information:
+                    logger.LogInformation(_message);
+                    break;
+                case LogLevel.Debug:
+                    logger.LogDebug(_message);
+                    break;
+                case LogLevel.Trace:
+                    logger.LogTrace(_message);
+                    break;
+                default:
+                    logger.LogInformation(_message);
+                    break;
+            }
+        }
+        else
+        {
+            ILogger<OperationResult<T>> logger = factory.CreateLogger<OperationResult<T>>();
+            switch (logLevel)
+            {
+                case LogLevel.Critical:
+                    logger.LogCritical(_message);
+                    break;
+                case LogLevel.Error:
+                    logger.LogError(_message);
+                    break;
+                case LogLevel.Warning:
+                    logger.LogWarning(_message);
+                    break;
+                case LogLevel.Information:
+                    logger.LogInformation(_message);
+                    break;
+                case LogLevel.Debug:
+                    logger.LogDebug(_message);
+                    break;
+                case LogLevel.Trace:
+                    logger.LogTrace(_message);
+                    break;
+                default:
+                    logger.LogInformation(_message);
+                    break;
+            }
+        }
+             
+
+        
+    }
 
     /// <summary>
     /// Basic ToString Function
