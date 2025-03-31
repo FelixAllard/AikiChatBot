@@ -1,9 +1,12 @@
-﻿using AikiDataBuilder.Database;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
+using AikiDataBuilder.Database;
 using AikiDataBuilder.Model.Sherweb.Database;
 using AikiDataBuilder.Model.SystemResponse;
 using AikiDataBuilder.Services.Workers;
-using Newtonsoft.Json;
+using AikiDataBuilder.Utilities;
 using Sherweb.Apis.ServiceProvider.Models;
+using JsonSerializerOptions = System.Text.Json.JsonSerializerOptions;
 
 namespace AikiDataBuilder.Services.SherwebFetcher.Requests;
 
@@ -22,72 +25,73 @@ public class GetAllCustomers : Request
     /// <param name="jsonContent">The content to serialize and then to add to the database</param>
     /// <returns></returns>
     /// <exception cref="InvalidOperationException"></exception>
-    public override async Task<OperationResult<JsonContent>> AddToDatabase(JsonContent jsonContent)
+    public override async Task<OperationResult<string>> AddToDatabase(string jsonContent)
+{
+    Exception exception = null;
+    try
     {
-        Exception exception = null;
-        try
+        if (string.IsNullOrWhiteSpace(jsonContent))
         {
-            // Read the content as a string
-            var jsonString = await jsonContent.ReadAsStringAsync();
-
-            if (string.IsNullOrWhiteSpace(jsonString))
-            {
-                throw new InvalidOperationException("Received JSON is empty or null.");
-            }
-
-            // Deserialize the JSON string to C# objects using Json.NET
-            var response = JsonConvert.DeserializeObject<Response>(jsonString);
-
-            if (response == null)
-            {
-                throw new InvalidOperationException("Failed to deserialize the JSON content into the expected structure.");
-            }
-
-            foreach (var customer in response.Items)
-            {
-                //Add Every single customer to the database
-                _sherwebDBContext.Customers.Add(new SherwebModel()
-                {
-                    Id = customer.Id,
-                    DisplayName = customer.DisplayName,
-                    Path = customer.Path
-                });
-            }
-            
-        }
-        catch (JsonException jsonEx)
-        {
-            // Handle errors that occur during deserialization
-            Console.Error.WriteLine($"Error deserializing JSON: {jsonEx.Message}");
-            exception = new InvalidOperationException("There was an error processing the JSON content.", jsonEx);
-        }
-        catch (HttpRequestException httpEx)
-        {
-            // Handle any HTTP-related errors (if jsonContent is from an HTTP request)
-            Console.Error.WriteLine($"HTTP error: {httpEx.Message}");
-            exception = new InvalidOperationException("There was an error with the HTTP request.", httpEx);
-        }
-        catch (InvalidOperationException invalidOpEx)
-        {
-            // Handle any specific invalid operation issues (like empty content or failed deserialization)
-            Console.Error.WriteLine($"Invalid operation: {invalidOpEx.Message}");
-            exception = invalidOpEx;
-        }
-        catch (Exception ex)
-        {
-            // Catch any other unexpected exceptions
-            Console.Error.WriteLine($"Unexpected error: {ex.Message}");
-            exception = new InvalidOperationException("An unexpected error occurred.", ex);
+            throw new InvalidOperationException("Received JSON is empty or null.");
         }
 
-        return await Task.FromResult(new OperationResult<JsonContent>()
+        Response? response;
+        response = JsonSerializer.Deserialize<Response>(jsonContent, new JsonSerializerOptions
         {
-            Message = "Success in adding to database",
-            Exception = exception,
-            Result = jsonContent
-
+            PropertyNameCaseInsensitive = true
         });
+
+        if (response == null)
+        {
+            throw new InvalidOperationException("Failed to deserialize the JSON content into the expected structure.");
+        }
+        
+        // Drop all customers
+        _sherwebDBContext.Customers.RemoveRange(_sherwebDBContext.Customers);
+        foreach (var customer in response.Items)
+        {
+            // Add new customer
+            _sherwebDBContext.Customers.Add(new SherwebModel()
+            {
+                Id = customer.Id,
+                DisplayName = customer.DisplayName,
+                Path = customer.Path.ToList(),
+                SuspendedOn = customer.SuspendedOn
+            });
+
+        }
+
+        await _sherwebDBContext.SaveChangesAsync(); // Ensure database changes are saved
     }
+    catch (JsonException jsonEx)
+    {
+        Console.Error.WriteLine($"Error deserializing JSON: {jsonEx.Message}");
+        exception = new InvalidOperationException("There was an error processing the JSON content.", jsonEx);
+    }
+    catch (HttpRequestException httpEx)
+    {
+        Console.Error.WriteLine($"HTTP error: {httpEx.Message}");
+        exception = new InvalidOperationException("There was an error with the HTTP request.", httpEx);
+    }
+    catch (InvalidOperationException invalidOpEx)
+    {
+        Console.Error.WriteLine($"Invalid operation: {invalidOpEx.Message}");
+        exception = invalidOpEx;
+    }
+    catch (Exception ex)
+    {
+        Console.Error.WriteLine($"Unexpected error: {ex.Message}");
+        exception = new InvalidOperationException("An unexpected error occurred.", ex);
+    }
+
+    return new OperationResult<string>()
+    {
+        Message = "Success in adding to database",
+        Exception = exception,
+        Result = jsonContent
+    };
+}
+
 }
 /// <summary>
 /// Serialisation Class
@@ -96,12 +100,17 @@ public class Item
 {
     public string Id { get; set; }
     public string DisplayName { get; set; }
-    public List<string> Path { get; set; }
+
+    [JsonConverter(typeof(StringOrArrayConverter))]
+    public List<string> Path { get; set; } = new List<string>();
+
+    public string SuspendedOn { get; set; }
 }
+
 /// <summary>
 /// Serialisation Class
 /// </summary>
 public class Response
 {
-    public List<Item> Items { get; set; }
+    public List<Item> Items { get; set; } = new List<Item>();
 }

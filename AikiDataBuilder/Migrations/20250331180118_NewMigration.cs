@@ -5,7 +5,7 @@
 namespace AikiDataBuilder.Migrations
 {
     /// <inheritdoc />
-    public partial class SherwebDbMigration : Migration
+    public partial class NewMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -17,7 +17,7 @@ namespace AikiDataBuilder.Migrations
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     DisplayName = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Path = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    SuspendedOn = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    SuspendedOn = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {

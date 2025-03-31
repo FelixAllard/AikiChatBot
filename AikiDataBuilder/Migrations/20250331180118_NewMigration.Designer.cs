@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AikiDataBuilder.Migrations
 {
     [DbContext(typeof(SherwebDbContext))]
-    [Migration("20250311165923_SherwebDbMigration")]
-    partial class SherwebDbMigration
+    [Migration("20250331180118_NewMigration")]
+    partial class NewMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,7 +24,7 @@ namespace AikiDataBuilder.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("CommitmentTerm", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.CommitmentTerm", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -51,7 +51,7 @@ namespace AikiDataBuilder.Migrations
                     b.ToTable("CommitmentTerms");
                 });
 
-            modelBuilder.Entity("CommittedMinimalQuantity", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.CommittedMinimalQuantity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -76,7 +76,7 @@ namespace AikiDataBuilder.Migrations
                     b.ToTable("CommittedMinimalQuantities");
                 });
 
-            modelBuilder.Entity("Deduction", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.Deduction", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -114,7 +114,7 @@ namespace AikiDataBuilder.Migrations
                     b.ToTable("Deductions");
                 });
 
-            modelBuilder.Entity("Fee", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.Fee", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -145,7 +145,7 @@ namespace AikiDataBuilder.Migrations
                     b.ToTable("Fees");
                 });
 
-            modelBuilder.Entity("Invoice", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.Invoice", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -182,7 +182,7 @@ namespace AikiDataBuilder.Migrations
                     b.ToTable("Invoices");
                 });
 
-            modelBuilder.Entity("LocalizedName", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.LocalizedName", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -209,7 +209,7 @@ namespace AikiDataBuilder.Migrations
                     b.ToTable("LocalizedNames");
                 });
 
-            modelBuilder.Entity("MeterUsage", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.MeterUsage", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -240,7 +240,7 @@ namespace AikiDataBuilder.Migrations
                     b.ToTable("MeterUsages");
                 });
 
-            modelBuilder.Entity("PayableCharge", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.PayableCharge", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -319,7 +319,7 @@ namespace AikiDataBuilder.Migrations
                     b.ToTable("PayableCharge");
                 });
 
-            modelBuilder.Entity("PayableCharges", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.PayableCharges", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -340,7 +340,7 @@ namespace AikiDataBuilder.Migrations
                     b.ToTable("PayableCharges");
                 });
 
-            modelBuilder.Entity("Platform", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.Platform", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
@@ -350,7 +350,7 @@ namespace AikiDataBuilder.Migrations
                     b.ToTable("Platforms");
                 });
 
-            modelBuilder.Entity("PlatformDetails", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.PlatformDetails", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -377,7 +377,7 @@ namespace AikiDataBuilder.Migrations
                     b.ToTable("PlatformDetails");
                 });
 
-            modelBuilder.Entity("PlatformUsage", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.PlatformUsage", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -399,7 +399,7 @@ namespace AikiDataBuilder.Migrations
                     b.ToTable("PlatformUsages");
                 });
 
-            modelBuilder.Entity("ReceivableCharge", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.ReceivableCharge", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -463,7 +463,7 @@ namespace AikiDataBuilder.Migrations
                     b.ToTable("ReceivableCharge");
                 });
 
-            modelBuilder.Entity("ReceivableCharges", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.ReceivableCharges", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -491,7 +491,7 @@ namespace AikiDataBuilder.Migrations
                     b.ToTable("ReceivableCharges");
                 });
 
-            modelBuilder.Entity("RenewalConfiguration", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.RenewalConfiguration", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -517,7 +517,7 @@ namespace AikiDataBuilder.Migrations
                     b.ToTable("RenewalConfigurations");
                 });
 
-            modelBuilder.Entity("SherwebModel", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.SherwebModel", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
@@ -531,7 +531,6 @@ namespace AikiDataBuilder.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SuspendedOn")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -541,7 +540,7 @@ namespace AikiDataBuilder.Migrations
                     b.ToTable("Customers");
                 });
 
-            modelBuilder.Entity("Subscription", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.Subscription", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
@@ -580,7 +579,7 @@ namespace AikiDataBuilder.Migrations
                     b.ToTable("Subscriptions");
                 });
 
-            modelBuilder.Entity("SubscriptionFees", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.SubscriptionFees", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -610,7 +609,7 @@ namespace AikiDataBuilder.Migrations
                     b.ToTable("SubscriptionFees");
                 });
 
-            modelBuilder.Entity("Tag", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.Tag", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -636,7 +635,7 @@ namespace AikiDataBuilder.Migrations
                     b.ToTable("Tags");
                 });
 
-            modelBuilder.Entity("Tax", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.Tax", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -661,20 +660,20 @@ namespace AikiDataBuilder.Migrations
                     b.ToTable("Taxes");
                 });
 
-            modelBuilder.Entity("CommitmentTerm", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.CommitmentTerm", b =>
                 {
-                    b.HasOne("Subscription", "Subscription")
+                    b.HasOne("AikiDataBuilder.Model.Sherweb.Database.Subscription", "Subscription")
                         .WithOne("CommitmentTerm")
-                        .HasForeignKey("CommitmentTerm", "SubscriptionId")
+                        .HasForeignKey("AikiDataBuilder.Model.Sherweb.Database.CommitmentTerm", "SubscriptionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Subscription");
                 });
 
-            modelBuilder.Entity("CommittedMinimalQuantity", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.CommittedMinimalQuantity", b =>
                 {
-                    b.HasOne("CommitmentTerm", "CommitmentTerm")
+                    b.HasOne("AikiDataBuilder.Model.Sherweb.Database.CommitmentTerm", "CommitmentTerm")
                         .WithMany("CommittedMinimalQuantities")
                         .HasForeignKey("CommitmentTermId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -683,9 +682,9 @@ namespace AikiDataBuilder.Migrations
                     b.Navigation("CommitmentTerm");
                 });
 
-            modelBuilder.Entity("Deduction", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.Deduction", b =>
                 {
-                    b.HasOne("PayableCharge", "PayableCharge")
+                    b.HasOne("AikiDataBuilder.Model.Sherweb.Database.PayableCharge", "PayableCharge")
                         .WithMany("Deductions")
                         .HasForeignKey("PayableChargeId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -694,9 +693,9 @@ namespace AikiDataBuilder.Migrations
                     b.Navigation("PayableCharge");
                 });
 
-            modelBuilder.Entity("Fee", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.Fee", b =>
                 {
-                    b.HasOne("PayableCharge", "PayableCharge")
+                    b.HasOne("AikiDataBuilder.Model.Sherweb.Database.PayableCharge", "PayableCharge")
                         .WithMany("Fees")
                         .HasForeignKey("PayableChargeId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -705,20 +704,20 @@ namespace AikiDataBuilder.Migrations
                     b.Navigation("PayableCharge");
                 });
 
-            modelBuilder.Entity("Invoice", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.Invoice", b =>
                 {
-                    b.HasOne("PayableCharge", "PayableCharge")
+                    b.HasOne("AikiDataBuilder.Model.Sherweb.Database.PayableCharge", "PayableCharge")
                         .WithOne("Invoice")
-                        .HasForeignKey("Invoice", "PayableChargeId")
+                        .HasForeignKey("AikiDataBuilder.Model.Sherweb.Database.Invoice", "PayableChargeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("PayableCharge");
                 });
 
-            modelBuilder.Entity("LocalizedName", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.LocalizedName", b =>
                 {
-                    b.HasOne("Platform", "Platform")
+                    b.HasOne("AikiDataBuilder.Model.Sherweb.Database.Platform", "Platform")
                         .WithMany("Name")
                         .HasForeignKey("PlatformId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -727,9 +726,9 @@ namespace AikiDataBuilder.Migrations
                     b.Navigation("Platform");
                 });
 
-            modelBuilder.Entity("MeterUsage", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.MeterUsage", b =>
                 {
-                    b.HasOne("PlatformUsage", "PlatformUsage")
+                    b.HasOne("AikiDataBuilder.Model.Sherweb.Database.PlatformUsage", "PlatformUsage")
                         .WithMany("MeterUsages")
                         .HasForeignKey("PlatformUsageId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -738,9 +737,9 @@ namespace AikiDataBuilder.Migrations
                     b.Navigation("PlatformUsage");
                 });
 
-            modelBuilder.Entity("PayableCharge", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.PayableCharge", b =>
                 {
-                    b.HasOne("PayableCharges", "PayableCharges")
+                    b.HasOne("AikiDataBuilder.Model.Sherweb.Database.PayableCharges", "PayableCharges")
                         .WithMany("Charges")
                         .HasForeignKey("PayableChargesId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -749,28 +748,28 @@ namespace AikiDataBuilder.Migrations
                     b.Navigation("PayableCharges");
                 });
 
-            modelBuilder.Entity("PlatformDetails", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.PlatformDetails", b =>
                 {
-                    b.HasOne("PlatformUsage", "PlatformUsage")
+                    b.HasOne("AikiDataBuilder.Model.Sherweb.Database.PlatformUsage", "PlatformUsage")
                         .WithOne("PlatformDetails")
-                        .HasForeignKey("PlatformDetails", "PlatformUsageId")
+                        .HasForeignKey("AikiDataBuilder.Model.Sherweb.Database.PlatformDetails", "PlatformUsageId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("PlatformUsage");
                 });
 
-            modelBuilder.Entity("PlatformUsage", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.PlatformUsage", b =>
                 {
-                    b.HasOne("SherwebModel", null)
+                    b.HasOne("AikiDataBuilder.Model.Sherweb.Database.SherwebModel", null)
                         .WithMany("Platform")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
-            modelBuilder.Entity("ReceivableCharge", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.ReceivableCharge", b =>
                 {
-                    b.HasOne("ReceivableCharges", "ReceivableCharges")
+                    b.HasOne("AikiDataBuilder.Model.Sherweb.Database.ReceivableCharges", "ReceivableCharges")
                         .WithMany("Charges")
                         .HasForeignKey("ReceivableChargesId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -779,31 +778,31 @@ namespace AikiDataBuilder.Migrations
                     b.Navigation("ReceivableCharges");
                 });
 
-            modelBuilder.Entity("ReceivableCharges", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.ReceivableCharges", b =>
                 {
-                    b.HasOne("SherwebModel", "Customer")
+                    b.HasOne("AikiDataBuilder.Model.Sherweb.Database.SherwebModel", "Customer")
                         .WithOne("ReceivableCharges")
-                        .HasForeignKey("ReceivableCharges", "CustomerId")
+                        .HasForeignKey("AikiDataBuilder.Model.Sherweb.Database.ReceivableCharges", "CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Customer");
                 });
 
-            modelBuilder.Entity("RenewalConfiguration", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.RenewalConfiguration", b =>
                 {
-                    b.HasOne("CommitmentTerm", "CommitmentTerm")
+                    b.HasOne("AikiDataBuilder.Model.Sherweb.Database.CommitmentTerm", "CommitmentTerm")
                         .WithOne("RenewalConfiguration")
-                        .HasForeignKey("RenewalConfiguration", "CommitmentTermId")
+                        .HasForeignKey("AikiDataBuilder.Model.Sherweb.Database.RenewalConfiguration", "CommitmentTermId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("CommitmentTerm");
                 });
 
-            modelBuilder.Entity("Subscription", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.Subscription", b =>
                 {
-                    b.HasOne("SherwebModel", "Customer")
+                    b.HasOne("AikiDataBuilder.Model.Sherweb.Database.SherwebModel", "Customer")
                         .WithMany("Subscriptions")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -812,20 +811,20 @@ namespace AikiDataBuilder.Migrations
                     b.Navigation("Customer");
                 });
 
-            modelBuilder.Entity("SubscriptionFees", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.SubscriptionFees", b =>
                 {
-                    b.HasOne("Subscription", "Subscription")
+                    b.HasOne("AikiDataBuilder.Model.Sherweb.Database.Subscription", "Subscription")
                         .WithOne("Fees")
-                        .HasForeignKey("SubscriptionFees", "SubscriptionId")
+                        .HasForeignKey("AikiDataBuilder.Model.Sherweb.Database.SubscriptionFees", "SubscriptionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Subscription");
                 });
 
-            modelBuilder.Entity("Tag", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.Tag", b =>
                 {
-                    b.HasOne("PayableCharge", "PayableCharge")
+                    b.HasOne("AikiDataBuilder.Model.Sherweb.Database.PayableCharge", "PayableCharge")
                         .WithMany("Tags")
                         .HasForeignKey("PayableChargeId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -834,9 +833,9 @@ namespace AikiDataBuilder.Migrations
                     b.Navigation("PayableCharge");
                 });
 
-            modelBuilder.Entity("Tax", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.Tax", b =>
                 {
-                    b.HasOne("PayableCharge", "PayableCharge")
+                    b.HasOne("AikiDataBuilder.Model.Sherweb.Database.PayableCharge", "PayableCharge")
                         .WithMany("Taxes")
                         .HasForeignKey("PayableChargeId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -845,7 +844,7 @@ namespace AikiDataBuilder.Migrations
                     b.Navigation("PayableCharge");
                 });
 
-            modelBuilder.Entity("CommitmentTerm", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.CommitmentTerm", b =>
                 {
                     b.Navigation("CommittedMinimalQuantities");
 
@@ -853,7 +852,7 @@ namespace AikiDataBuilder.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("PayableCharge", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.PayableCharge", b =>
                 {
                     b.Navigation("Deductions");
 
@@ -867,17 +866,17 @@ namespace AikiDataBuilder.Migrations
                     b.Navigation("Taxes");
                 });
 
-            modelBuilder.Entity("PayableCharges", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.PayableCharges", b =>
                 {
                     b.Navigation("Charges");
                 });
 
-            modelBuilder.Entity("Platform", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.Platform", b =>
                 {
                     b.Navigation("Name");
                 });
 
-            modelBuilder.Entity("PlatformUsage", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.PlatformUsage", b =>
                 {
                     b.Navigation("MeterUsages");
 
@@ -885,12 +884,12 @@ namespace AikiDataBuilder.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("ReceivableCharges", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.ReceivableCharges", b =>
                 {
                     b.Navigation("Charges");
                 });
 
-            modelBuilder.Entity("SherwebModel", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.SherwebModel", b =>
                 {
                     b.Navigation("Platform");
 
@@ -900,7 +899,7 @@ namespace AikiDataBuilder.Migrations
                     b.Navigation("Subscriptions");
                 });
 
-            modelBuilder.Entity("Subscription", b =>
+            modelBuilder.Entity("AikiDataBuilder.Model.Sherweb.Database.Subscription", b =>
                 {
                     b.Navigation("CommitmentTerm")
                         .IsRequired();

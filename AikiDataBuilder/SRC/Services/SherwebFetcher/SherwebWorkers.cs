@@ -13,7 +13,7 @@ public class SherwebWorkers : IHttpWorker
     private Dictionary<string,string> _credentials;
     private Request _currentRequest;
     private float _currentTimeout;
-    private Request _authentificationRequest;
+    //private Request _authentificationRequest;
     private int authorizationTryCount = 0;
     public SherwebWorkers(
         IConfiguration configuration
@@ -35,74 +35,67 @@ public class SherwebWorkers : IHttpWorker
         });
     }
 
-    public async Task<OperationResult<JsonContent>> SendRequest(Request request, float timeout = 3000)
+    public async Task<OperationResult<string>> SendRequest(Request request, float timeout = 3000)
     {
         _currentRequest = request;
         _currentTimeout = timeout;
-        JsonContent finalResult = null;
+        string finalResult = null;
+
         try
         {
-            var response = _currentRequest.SendRequest(_currentTimeout);
-            if (response.Result.Status == OperationResultStatus.Failed)
-                return await Task.FromResult(new OperationResult<JsonContent>()
+            var response = await _currentRequest.SendRequest(_currentTimeout); // Ensure async execution
+
+            if (response.Status == OperationResultStatus.Failed)
+            {
+                return new OperationResult<string>
                 {
                     Status = OperationResultStatus.Failed,
-                    Message = "Unable to finish operation because critical error happened in the the request",
+                    Message = "Unable to finish operation because a critical error happened in the request.",
                     Exception = response.Exception,
-                    Result = response.Result.Result
-                    
-                });
-            //Partial Success only ever happens if the status Unauthorized happens
-            if (response.Result.Status == OperationResultStatus.PartialSuccess)
+                    Result = response.Result
+                };
+            }
+
+            // Handle PartialSuccess (likely Unauthorized response)
+            if (response.Status == OperationResultStatus.PartialSuccess)
             {
-                // I will handle the unauthorized in the SherwebFetcher, which will 
-                return await Task.FromResult(new OperationResult<JsonContent>()
+                return new OperationResult<string>
                 {
                     Status = OperationResultStatus.PartialSuccess,
-                    Message = response.Result.Message,
-                    Result = response.Result.Result,
-                    Exception = response.Result.Exception,
-                });
-
-                /*if (authorizationTryCount > 0)
-                    return await Task.FromResult(new OperationResult<JsonContent>()
-                    {
-                        Status = OperationResultStatus.Critical,
-                        Exception = new Exception("Unable to authenticate after trying"),
-                        Result = response.Result.Result,
-                        Message = "Authentication failed",
-                    });
-                // We want to avoid infinite recursive calls
-                authorizationTryCount++;
-                var result = await HandleUnAuthorized(_authentificationRequest, 5000);
-                if(result.Status == OperationResultStatus.Success)
-                    // Recursive call so that it is easier to understand
-                    return await SendRequest(request, timeout);*/
+                    Message = response.Message,
+                    Result = response.Result,
+                    Exception = response.Exception
+                };
             }
-            finalResult = response.Result.Result;
+
+            finalResult = response.Result;
+            Console.WriteLine(finalResult);
+
+            // Handle database update
+            await _currentRequest.AddToDatabase(finalResult);
         }
         catch (Exception e)
         {
-            return await Task.FromResult(new OperationResult<JsonContent>()
+            return new OperationResult<string>
             {
                 Status = OperationResultStatus.Failed,
                 Exception = e,
                 Message = e.Message,
                 Result = null
-            });
+            };
         }
 
-        return await Task.FromResult(new OperationResult<JsonContent>()
+        return new OperationResult<string>
         {
             Status = OperationResultStatus.Success,
             Result = finalResult,
-            Message = "Successfully sent request to Sherweb",
-        });
-
+            Message = "Successfully sent request to Sherweb."
+        };
     }
+
     
 
-    public async Task<OperationResult<string>> HandleUnAuthorized(Request request, float timeout)
+    /*public async Task<OperationResult<string>> HandleUnAuthorized(Request request, float timeout)
     {
         string bearerToken = "";
         try
@@ -142,7 +135,7 @@ public class SherwebWorkers : IHttpWorker
             Result = bearerToken,
             Message = "Successfully Generated New Bearer Token",
         });
-    }
+    }*/
     
 
     public OperationResult<string> CleanUpWorker()

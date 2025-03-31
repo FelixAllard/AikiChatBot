@@ -13,7 +13,8 @@ public class SherwebModel
     public string Id { get; set; }
     public string DisplayName { get; set; }
     public List<string> Path { get; set; }
-    public string SuspendedOn { get; set; }
+    
+    public string? SuspendedOn { get; set; }
     public virtual List<PlatformUsage> Platform { get; set; }
     public virtual ReceivableCharges ReceivableCharges { get; set; }
     public virtual List<Subscription> Subscriptions { get; set; }

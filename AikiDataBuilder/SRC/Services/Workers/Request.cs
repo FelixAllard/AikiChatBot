@@ -35,7 +35,7 @@ public abstract class Request
     /// </summary>
     /// <param name="jsonContent"></param>
     /// <returns></returns>
-    public abstract Task<OperationResult<JsonContent>> AddToDatabase(JsonContent jsonContent);
+    public abstract Task<OperationResult<string>> AddToDatabase(string jsonContent);
 
     public OperationResult<string> SetUrl(string url)
     {
@@ -172,18 +172,18 @@ public abstract class Request
     }
 
 
-    public async virtual Task<OperationResult<JsonContent>> SendRequest(float timeout = 3000)
+    public async virtual Task<OperationResult<string>> SendRequest(float timeout = 3000)
     {
         _httpClient.Timeout = TimeSpan.FromSeconds(timeout);
         OperationResult<string> builtUrl = BuildUrl();
         if (builtUrl.Status != OperationResultStatus.Success)
-            return await Task.FromResult(new OperationResult<JsonContent>
+            return await Task.FromResult(new OperationResult<string>
             {
                 Status = OperationResultStatus.Failed,
                 Message = builtUrl.Message + " Because of the previous problem, " +
                           "we will not be doing API calls to the endpoint. " +
                           "We will be skipping this call",
-                Result = JsonContent.Create(builtUrl.Result),
+                Result = builtUrl.Result,
                 Exception = builtUrl.Exception
             });
         var request = new HttpRequestMessage(HttpMethod.Get, builtUrl.Result);
@@ -199,57 +199,58 @@ public abstract class Request
         HttpResponseMessage response = new HttpResponseMessage();
         try
         {
-            response = _httpClient.SendAsync(request).Result;
+            response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
         }
         catch (HttpRequestException e)
         {
             // If it is simply unauthorized, we simply need to revise the toke
             if (response.StatusCode == HttpStatusCode.Unauthorized)
-                return await Task.FromResult(new OperationResult<JsonContent>()
+                return await Task.FromResult(new OperationResult<string>()
                 {
                     Status = OperationResultStatus.PartialSuccess,
                     Message = "Encountered 401 Unauthorized Request",
-                    Result = JsonContent.Create(response.Content.ReadAsStringAsync().Result),
+                    Result = response.Content.ReadAsStringAsync().Result,
                     Exception = e
                 });
             //If it is anything else, well let's just say we'll need to skip
-            return await Task.FromResult(new OperationResult<JsonContent>()
+            return await Task.FromResult(new OperationResult<string>()
             {
                 Status = OperationResultStatus.Failed,
                 Message = $"Encountered {response.StatusCode} HTTP ERROR",
-                Result = JsonContent.Create(response.Content.ReadAsStringAsync().Result),
+                Result = response.Content.ReadAsStringAsync().Result,
                 Exception = e
             });
         }
         catch (TaskCanceledException e)
         {
-            return await Task.FromResult(new OperationResult<JsonContent>()
+            return await Task.FromResult(new OperationResult<string>()
             {
                 Status = OperationResultStatus.Failed,
                 Message = $"The http request was canceled due to a Timeout Exception",
-                Result = JsonContent.Create(response.Content.ReadAsStringAsync().Result),
+                Result = response.Content.ReadAsStringAsync().Result,
                 Exception = e
             });
 
         }
 
-        var contentofResponse = response.Content.ReadAsStringAsync().Result;
+        var contentofResponse = await response.Content.ReadAsStringAsync();
+        Console.WriteLine("in the IRequest Send Request" + contentofResponse);
         if (contentofResponse.IsNullOrEmpty())
         {
-            return await Task.FromResult(new OperationResult<JsonContent>()
+            return await Task.FromResult(new OperationResult<string>()
             {
                 Status = OperationResultStatus.Failed,
                 Message = $"Received Empty Response",
-                Result = JsonContent.Create(JsonConvert.DeserializeObject(contentofResponse))
+                Result = contentofResponse
             });
         }
 
-        return await Task.FromResult(new OperationResult<JsonContent>()
+        return await Task.FromResult(new OperationResult<string>()
         {
             Status = OperationResultStatus.Success,
             Message = $"Received a valid Response",
-            Result = JsonContent.Create(JsonConvert.DeserializeObject(contentofResponse))
+            Result = contentofResponse
         });
     }
 }
