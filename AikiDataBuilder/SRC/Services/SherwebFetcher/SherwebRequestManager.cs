@@ -74,6 +74,23 @@ public class SherwebRequestManager : IRequestManager
         StartTask();
         _waitHandle.Set();
     }
+    
+    /// <summary>
+    /// Constructor For test DO NOT USE
+    /// </summary>
+    /// <param name="config"></param>
+    /// <param name="httpClientFactory"></param>
+    /// <exception cref="Exception"></exception>
+    public SherwebRequestManager(
+        IConfiguration config, 
+        IHttpClientFactory httpClientFactory
+    )
+    {
+        _requestQueue = new ConcurrentQueue<Request>();
+        Configuration = config;
+        _httpClientFactory = httpClientFactory;
+        Keys = GetCredentials().Result;
+    }
     /// <summary>
     /// This function  is responsible to start the async loop task that will add all the request to the
     /// Queue
@@ -139,7 +156,7 @@ public class SherwebRequestManager : IRequestManager
                     { "BaseUrl", baseUrl },
                     { "SubscriptionKey", subscriptionKey },
                     { "ClientId", clientId },
-                    { "ClientSecret", clientId },
+                    { "ClientSecret", clientSecret },
                 },
                 Exception = new FormatException("The credentials fetch failed for one or more values"),
                 Message = "Make sure the credentials are filled in the appsettings.json file.",
@@ -154,7 +171,7 @@ public class SherwebRequestManager : IRequestManager
                 { "BaseUrl", baseUrl },
                 { "SubscriptionKey", subscriptionKey },
                 { "ClientId", clientId },
-                { "ClientSecret", clientId },
+                { "ClientSecret", clientSecret },
             },
             Message = "All the information was available! Successfully fetched from AppSettings.json file.",
             Status = OperationResultStatus.Success
@@ -255,44 +272,51 @@ public class SherwebRequestManager : IRequestManager
         request.Content = new FormUrlEncodedContent(collection);
 
         var response = await authorizationRequest.SendAsync(request);
-        Console.WriteLine(response.RequestMessage);
+        string jsonResponse = await response.Content.ReadAsStringAsync(); // Read response content
+
         if (response.IsSuccessStatusCode)
         {
-            string jsonResponse = await response.Content.ReadAsStringAsync();
             var tokenResponse = JsonSerializer.Deserialize<TokenResponse>(jsonResponse, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            if(response.StatusCode!=HttpStatusCode.OK)
-                return await Task.FromResult(new OperationResult<(string, bool)>()
-                {
-                    Result = (tokenResponse?.Access_Token, false),
-                    Message = $"Received a non 200 OK response {response.StatusCode.ToString()}",
-                    Status = OperationResultStatus.Failed
-                }) ;
-            if(tokenResponse == null)
-                return await Task.FromResult(new OperationResult<(string, bool)>()
-                {
-                    Result = (tokenResponse?.Access_Token, false),
-                    Message = "Failed to retrieve access token",
-                    Status = OperationResultStatus.Failed
-                }) ;  
-            bearerToken = tokenResponse.Access_Token;
-            return await Task.FromResult(new OperationResult<(string, bool)>()
+
+            if (response.StatusCode != HttpStatusCode.OK)
             {
-                Result = (tokenResponse?.Access_Token, true),
+                return new OperationResult<(string, bool)>
+                {
+                    Result = (tokenResponse?.Access_Token, false),
+                    Message = $"Received a non-200 OK response ({response.StatusCode}): {jsonResponse}", // Include API response
+                    Status = OperationResultStatus.Failed
+                };
+            }
+
+            if (tokenResponse == null)
+            {
+                return new OperationResult<(string, bool)>
+                {
+                    Result = (null, false),
+                    Message = $"Failed to retrieve access token. API Response: {jsonResponse}", // Include API response
+                    Status = OperationResultStatus.Failed
+                };
+            }
+
+            bearerToken = tokenResponse.Access_Token;
+            return new OperationResult<(string, bool)>
+            {
+                Result = (tokenResponse.Access_Token, true),
                 Message = "Access token retrieved successfully",
                 Status = OperationResultStatus.Success
-            }) ; // Return the access token
+            };
         }
         else
         {
-            return await Task.FromResult(new OperationResult<(string, bool)>()
+            return new OperationResult<(string, bool)>
             {
-                Message = "Failed to retrieve access token",
+                Message = $"Failed to retrieve access token. API Response: {jsonResponse}", // Include API response
                 Status = OperationResultStatus.Critical,
                 Exception = new Exception($"Failed to retrieve token: {response.StatusCode}")
-            }) ;
+            };
         }
-        
     }
+
 
     public async Task<OperationResult<bool>> ReturnRequest(Request request, RequestReturnJustification shouldStop, bool critical = false)
     {
