@@ -58,6 +58,18 @@ public class SherwebRequestManager : IRequestManager
         SherwebDbContext = sherwebDbContext;
         Keys = GetCredentials().Result;
         _httpClientFactory = httpClientFactory;
+        var tokenCreation = ResetAuthorizationToken();
+
+        if (tokenCreation != null)
+        {
+            var (token, result) = tokenCreation.Result.Result;
+            if (result == false)
+            {
+                throw new Exception("Invalid token");
+            }
+        }
+            
+        
         //This will start the task Population process
         StartTask();
         _waitHandle.Set();
@@ -236,13 +248,14 @@ public class SherwebRequestManager : IRequestManager
         {
             new("client_id", Keys["ClientId"]),
             new("client_secret", Keys["ClientSecret"]),
-            new("scope", "distributor"),
+            new("scope", "service-provider"),
             new("grant_type", "client_credentials")
         };
 
         request.Content = new FormUrlEncodedContent(collection);
 
         var response = await authorizationRequest.SendAsync(request);
+        Console.WriteLine(response.RequestMessage);
         if (response.IsSuccessStatusCode)
         {
             string jsonResponse = await response.Content.ReadAsStringAsync();
