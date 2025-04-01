@@ -5,9 +5,9 @@
 /// </summary>
 public enum CommitmentLenght
 {
-    Monthly , 
-    Annual , 
-    Biennial , 
+    Monthly, 
+    Annual, 
+    Biennial, 
     Triennial
     
 }

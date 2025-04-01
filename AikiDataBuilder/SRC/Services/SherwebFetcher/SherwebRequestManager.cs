@@ -21,6 +21,8 @@ public class SherwebRequestManager : IRequestManager
     public int MaxWorkers { get; } = 3;
     private IConfiguration Configuration { get; }
     private SherwebDbContext SherwebDbContext { get; }
+    
+    private IServiceProvider ServiceProvider { get; }
     private Dictionary<string, string> Keys { get; }
     private CancellationTokenSource? _cts;
     private Task? _backgroundTask;
@@ -50,7 +52,8 @@ public class SherwebRequestManager : IRequestManager
     public SherwebRequestManager(
         IConfiguration config, 
         SherwebDbContext sherwebDbContext,
-        IHttpClientFactory httpClientFactory
+        IHttpClientFactory httpClientFactory,
+        IServiceProvider serviceProvider
     )
     {
         _requestQueue = new ConcurrentQueue<Request>();
@@ -58,6 +61,7 @@ public class SherwebRequestManager : IRequestManager
         SherwebDbContext = sherwebDbContext;
         Keys = GetCredentials().Result;
         _httpClientFactory = httpClientFactory;
+        ServiceProvider = serviceProvider;
         var tokenCreation = ResetAuthorizationToken();
 
         if (tokenCreation != null)
@@ -415,42 +419,112 @@ public class SherwebRequestManager : IRequestManager
             //Will block the infinite loop until all workers are available
             _waitHandle.Wait();
             _waitHandle.Reset();
-            
-            // Here we will put all the steps inside a switch
-            switch (retrievalStep[0])
+            using (var context = ServiceProvider.GetRequiredService<SherwebDbContext>())
             {
-                case 0:
-                    var getAllCustomerRequest = new GetAllCustomers(
-                        //Create a new HttpCLient Every time
-                        _httpClientFactory.CreateClient(),
-                        SherwebDbContext
-                    );
-                    getAllCustomerRequest.SetBearerToken(bearerToken);
-                    getAllCustomerRequest.SetHeaderVariables(new Dictionary<string, string>()
-                    {
+                // Here we will put all the steps inside a switch
+                switch (retrievalStep[0])
+                {
+                    case 0:
+                        var getAllCustomerRequest = new GetAllCustomers(
+                            //Create a new HttpCLient Every time
+                            _httpClientFactory.CreateClient(),
+                            context
+                        );
+                        getAllCustomerRequest.SetBearerToken(bearerToken);
+                        getAllCustomerRequest.SetHeaderVariables(new Dictionary<string, string>()
                         {
-                            "Ocp-Apim-Subscription-Key", 
-                            Keys[
-                                "SubscriptionKey"
-                            ]
+                            {
+                                "Ocp-Apim-Subscription-Key",
+                                Keys[
+                                    "SubscriptionKey"
+                                ]
+                            }
+                        });
+                        AddRequest(getAllCustomerRequest);
+                        break;
+                    case 1:
+                        //NOT USED RIGHT NOW SO WE SKIP
+                        retrievalStep[0] = 2;
+                        goto case 2;
+
+                        var allCustomersReceivableCharges = SherwebDbContext.Customers.ToList();
+                        foreach (var customer in allCustomersReceivableCharges)
+                        {
+                            var getReceivableChargesRequest = new GetReceivableCharges(
+                                _httpClientFactory.CreateClient(),
+                                context
+                            );
+                            getReceivableChargesRequest.SetBearerToken(bearerToken);
+                            getReceivableChargesRequest.SetHeaderVariables(new Dictionary<string, string>()
+                            {
+                                {
+                                    "Ocp-Apim-Subscription-Key",
+                                    Keys[
+                                        "SubscriptionKey"
+                                    ]
+                                }
+                            });
+                            getReceivableChargesRequest.SetRouteVariables(new Dictionary<string, string>()
+                            {
+                                {
+                                    "{{customerId}}",
+                                    customer.Id.ToString()
+                                }
+                            });
+                            AddRequest(getReceivableChargesRequest);
+
+
                         }
-                    });
-                    AddRequest(getAllCustomerRequest);
-                    break;
-                default:
-                    noMoreRequest = true;
-                    return await Task.FromResult(new OperationResult<(bool hasRequest, Request? request, bool shouldStop)>()
-                    {
-                        Message = "Not Finding a request to give back",
-                        Result =(
-                        true,
-                        null,
-                        true
-                        ),
-                        Status = OperationResultStatus.Success
-                        
-                    });
+
+                        break;
+                    case 2:
+                        var allCustomersSubscriptions = context.Customers.ToList();
+                        foreach (var customer in allCustomersSubscriptions)
+                        {
+                            var getSubscriptions = new GetSubscriptions(
+                                _httpClientFactory.CreateClient(),
+                                context
+                            );
+                            getSubscriptions.SetBearerToken(bearerToken);
+                            getSubscriptions.SetHeaderVariables(new Dictionary<string, string>()
+                            {
+                                {
+                                    "Ocp-Apim-Subscription-Key",
+                                    Keys[
+                                        "SubscriptionKey"
+                                    ]
+                                }
+                            });
+                            getSubscriptions.SetRouteVariables(new Dictionary<string, string>()
+                            {
+                                {
+                                    "{{customerId}}",
+                                    customer.Id.ToString()
+                                }
+                            });
+                            AddRequest(getSubscriptions);
+                            break;
+                        }
+
+                        break;
+                    default:
+                        noMoreRequest = true;
+                        return await Task.FromResult(
+                            new OperationResult<(bool hasRequest, Request? request, bool shouldStop)>()
+                            {
+                                Message = "Not Finding a request to give back",
+                                Result = (
+                                    true,
+                                    null,
+                                    true
+                                ),
+                                Status = OperationResultStatus.Success
+
+                            });
+                }
+                
             }
+
             retrievalStep[0] += 1 ;
         }
 

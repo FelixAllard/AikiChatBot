@@ -25,13 +25,14 @@ public class SherwebFetcher : IApiFetcher
     private IHttpClientFactory _httpClientFactory;
     private SherwebDbContext _sherwebDbContext;
     private ILogger<SherwebFetcher> _logger;
-
+    private IServiceProvider _serviceProvider;
     public SherwebFetcher(
         IHttpClientFactory httpClientFactory,
         SherwebDbContext sherwebDbContext,
         IConfiguration configuration,
         SherwebRequestManager requestManager,
-        ILogger<SherwebFetcher> logger
+        ILogger<SherwebFetcher> logger,
+        IServiceProvider serviceProvider
     )
     {
         Workers = new List<IHttpWorker>();
@@ -40,6 +41,7 @@ public class SherwebFetcher : IApiFetcher
         _configuration = configuration;
         this.requestManager = requestManager;
         _logger = logger;
+        _serviceProvider = serviceProvider;
         
         var resultCreationWorkers = CreateWorkers();
         if(resultCreationWorkers.Status!= OperationResultStatus.Success)
@@ -65,7 +67,8 @@ public class SherwebFetcher : IApiFetcher
             requestManager = new SherwebRequestManager(
                 _configuration, 
                 _sherwebDbContext,
-                _httpClientFactory
+                _httpClientFactory,
+                _serviceProvider
             );
             var resultCreationWorkers = CreateWorkers();
             if(resultCreationWorkers.Status!= OperationResultStatus.Success)
