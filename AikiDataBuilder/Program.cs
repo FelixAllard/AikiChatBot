@@ -39,6 +39,12 @@ builder.Services.Scan(scan => scan
     .AsImplementedInterfaces()
     .WithScopedLifetime()
 );
+builder.Services.Scan(scan => scan
+    .FromAssemblyOf<Request>()
+    .AddClasses(classes => classes.AssignableTo<Request>())
+    .AsSelf()
+    .WithTransientLifetime());
+
 
 builder.Services.Scan(scan => scan
     .FromAssemblies(AppDomain.CurrentDomain.GetAssemblies())

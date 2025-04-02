@@ -17,7 +17,7 @@ namespace AikiDataBuilder.Services.SherwebFetcher.Requests;
 /// </summary>
 public class GetReceivableCharges : Request
 {
-    public GetReceivableCharges(HttpClient clientFactory, SherwebDbContext sherwebDBContext) : base(clientFactory, sherwebDBContext)
+    public GetReceivableCharges(IHttpClientFactory clientFactory, SherwebDbContext sherwebDBContext) : base(clientFactory, sherwebDBContext)
     {
         Url = "https://api.sherweb.com/service-provider/v1/billing/receivable-charges?customerId={{customerId}}";
     }

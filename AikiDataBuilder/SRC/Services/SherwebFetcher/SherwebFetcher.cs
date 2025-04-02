@@ -218,6 +218,7 @@ public class SherwebFetcher : IApiFetcher
         for (int i = 0; i < _numberOfWorkers; i++)
         {
             var worker = new SherwebWorkers(_configuration);
+            worker.WorkerId = i;
             Workers.Add(worker);
     
             // Run PrepareWorker asynchronously
@@ -268,7 +269,7 @@ public class SherwebFetcher : IApiFetcher
 
                         if (hasRequest && request != null)
                         {
-                            requestManager.ActivateWorker();
+                            requestManager.ActivateWorker(worker.WorkerId);
                             var result = await worker.SendRequest(request, 3000);
                             
                             if(result.Status == OperationResultStatus.PartialSuccess)
@@ -279,14 +280,16 @@ public class SherwebFetcher : IApiFetcher
                                 );
                             
                             _logger.LogInformation($"Processed request: {result}");
-                            requestManager.ReturnWorker();
+                            
                             // Increment the counter
                             requestCounter.Increment();
                         }
                         else
                         {
+                            
                             // No request available right now — retry after a small delay
                             await Task.Delay(100);
+                            requestManager.ReturnWorker(worker.WorkerId);
                         }
                     }
                     catch (Exception ex)

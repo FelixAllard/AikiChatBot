@@ -28,6 +28,7 @@ public class SherwebRequestManager : IRequestManager
     private Task? _backgroundTask;
     private IHttpClientFactory _httpClientFactory;
     private bool noMoreRequest = false;
+    private List<int> activeWorkers = new List<int>();
     
     
     private string bearerToken;
@@ -124,6 +125,7 @@ public class SherwebRequestManager : IRequestManager
         }, token);
     }
     /// <summary>
+    /// 
     /// This can be used to stop the loop, thought I won't be using it, it can be practical
     /// </summary>
     public void StopTask()
@@ -183,8 +185,17 @@ public class SherwebRequestManager : IRequestManager
     }
 
 
-    public OperationResult<bool> ActivateWorker(int numberOfWorkers = 1)
+    public OperationResult<bool> ActivateWorker(int clientId,int numberOfWorkers = 1)
     {
+        if(activeWorkers.FirstOrDefault(x => x == clientId)!=null)
+            return new OperationResult<bool>()
+            {
+                Message = $"Worker already active",
+                Result = AllWorkersAvailable,
+                Exception = null,
+                Status = OperationResultStatus.Success
+            };
+        activeWorkers.Add(clientId);
         AvailableWorkers += numberOfWorkers;
         return new OperationResult<bool>()
         {
@@ -195,8 +206,17 @@ public class SherwebRequestManager : IRequestManager
         };
     }
 
-    public OperationResult<bool> ReturnWorker(int numberOfWorkers = 1)
+    public OperationResult<bool> ReturnWorker(int clientId, int numberOfWorkers = 1)
     {
+        if(activeWorkers.FirstOrDefault(x => x == clientId)==null)
+            return new OperationResult<bool>()
+            {
+                Message = $"Worker not active",
+                Result = AllWorkersAvailable,
+                Exception = null,
+                Status = OperationResultStatus.Success
+            };
+        activeWorkers.Remove(clientId);
         AvailableWorkers -= numberOfWorkers;
         return new OperationResult<bool>()
         {
@@ -415,21 +435,15 @@ public class SherwebRequestManager : IRequestManager
     {
         while (true)
         {
-            Console.WriteLine("LIFE IS GOOD");
             //Will block the infinite loop until all workers are available
             _waitHandle.Wait();
             _waitHandle.Reset();
-            using (var context = ServiceProvider.GetRequiredService<SherwebDbContext>())
-            {
+
                 // Here we will put all the steps inside a switch
                 switch (retrievalStep[0])
                 {
                     case 0:
-                        var getAllCustomerRequest = new GetAllCustomers(
-                            //Create a new HttpCLient Every time
-                            _httpClientFactory.CreateClient(),
-                            context
-                        );
+                        var getAllCustomerRequest = InstantiateRequestClass<GetAllCustomers>().Result;
                         getAllCustomerRequest.SetBearerToken(bearerToken);
                         getAllCustomerRequest.SetHeaderVariables(new Dictionary<string, string>()
                         {
@@ -450,10 +464,7 @@ public class SherwebRequestManager : IRequestManager
                         var allCustomersReceivableCharges = SherwebDbContext.Customers.ToList();
                         foreach (var customer in allCustomersReceivableCharges)
                         {
-                            var getReceivableChargesRequest = new GetReceivableCharges(
-                                _httpClientFactory.CreateClient(),
-                                context
-                            );
+                            var getReceivableChargesRequest = InstantiateRequestClass<GetReceivableCharges>().Result;
                             getReceivableChargesRequest.SetBearerToken(bearerToken);
                             getReceivableChargesRequest.SetHeaderVariables(new Dictionary<string, string>()
                             {
@@ -478,13 +489,12 @@ public class SherwebRequestManager : IRequestManager
 
                         break;
                     case 2:
-                        var allCustomersSubscriptions = context.Customers.ToList();
+                        var allCustomersSubscriptions = SherwebDbContext.Customers.ToList();
+                        int xTest = 0;
                         foreach (var customer in allCustomersSubscriptions)
                         {
-                            var getSubscriptions = new GetSubscriptions(
-                                _httpClientFactory.CreateClient(),
-                                context
-                            );
+                            Console.WriteLine(xTest++);
+                            var getSubscriptions = InstantiateRequestClass<GetSubscriptions>().Result;
                             getSubscriptions.SetBearerToken(bearerToken);
                             getSubscriptions.SetHeaderVariables(new Dictionary<string, string>()
                             {
@@ -522,13 +532,22 @@ public class SherwebRequestManager : IRequestManager
 
                             });
                 }
-                
-            }
 
-            retrievalStep[0] += 1 ;
+                retrievalStep[0] += 1 ;
         }
 
     }
+
+    private OperationResult<Request> InstantiateRequestClass<Request>()
+    {
+        return new OperationResult<Request>()
+        {
+            Status = OperationResultStatus.Success,
+            Message = "Instantiated Request of Type "+ typeof(Request).Name,
+            Result = ServiceProvider.GetRequiredService<Request>()
+        };
+    }
+
     
     
     

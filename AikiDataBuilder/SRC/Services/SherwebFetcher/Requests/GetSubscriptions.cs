@@ -7,6 +7,7 @@ using AikiDataBuilder.Model.SystemResponse;
 using AikiDataBuilder.Services.Workers;
 using AikiDataBuilder.Utilities;
 using AikiDataBuilder.Utilities.EnumConverter;
+using Microsoft.EntityFrameworkCore;
 using Sherweb.Apis.ServiceProvider.Models;
 using JsonSerializerOptions = System.Text.Json.JsonSerializerOptions;
 using Subscription = AikiDataBuilder.Model.Sherweb.Database.Subscription;
@@ -21,7 +22,7 @@ namespace AikiDataBuilder.Services.SherwebFetcher.Requests;
 /// </summary>
 public class GetSubscriptions : Request
 {
-    public GetSubscriptions(HttpClient clientFactory, SherwebDbContext sherwebDBContext) : base(clientFactory, sherwebDBContext)
+    public GetSubscriptions(IHttpClientFactory clientFactory, SherwebDbContext sherwebDBContext) : base(clientFactory, sherwebDBContext)
     {
         Url = "https://api.sherweb.com/service-provider/v1/billing/subscriptions?customerId={{customerId}}";
     }
@@ -62,42 +63,172 @@ public class GetSubscriptions : Request
             
             foreach (var subscription in subscriptions.Items)
             {
-                var subscriptionDbInstance = _sherwebDBContext.Subscriptions.Add(new Subscription()
+                // 1. Create basic subscription properties
+                var newSubscription = new Subscription()
                 {
+                    
                     Id = subscription.Id,
                     ProductName = subscription.ProductName,
                     Description = subscription.Description,
                     Sku = subscription.Sku,
                     Quantity = subscription.Quantity,
                     BillingCycle = subscription.BillingCycle,
-                    PurchaseDate = subscription.PurchaseDate,
-                    Fees = new SubscriptionFees()
-                    {
-                        Currency = subscription.Fees.Currency,
-                        SetupFee = subscription.Fees.SetupFee,
-                        RecurringFee = subscription.Fees.RecurringFee,
-                    },
-                    CommitmentTerm = new CommitmentTermDb()
-                    {
-                       Type = subscription.CommitmentTerm.Type,
-                       TermEndDate = subscription.CommitmentTerm.TermEndDate,
-                       RenewalConfiguration = new RenewalConfigurationDb()
-                       {
-                           RenewalDate = subscription.CommitmentTerm.RenewalConfiguration.RenewalDate,
-                           ScheduledQuantity = subscription.CommitmentTerm.RenewalConfiguration.ScheduledQuantity
-                       }
-                    }
-                });
-                foreach (var committedMinimalQuantity in subscription.CommitmentTerm.CommittedMinimalQuantities)
+                    PurchaseDate = subscription.PurchaseDate
+                };
+
+// 2. Create and assign Fees
+                var fees = new SubscriptionFees()
                 {
-                    subscriptionDbInstance.Entity.CommitmentTerm.CommittedMinimalQuantities.Add(
-                        new AikiDataBuilder.Model.Sherweb.Database.CommittedMinimalQuantity()
-                        {
-                            Quantity = committedMinimalQuantity.Quantity,
-                            CommittedUntil = committedMinimalQuantity.CommittedUntil,
-                        }
-                    );
+                    Currency = subscription.Fees.Currency,
+                    SetupFee = subscription.Fees.SetupFee,
+                    RecurringFee = subscription.Fees.RecurringFee
+                };
+                newSubscription.Fees = fees;
+
+// 3. Create RenewalConfiguration
+                var renewalConfig = new RenewalConfigurationDb();
+
+                if (subscription?.CommitmentTerm?.RenewalConfiguration != null)
+                {
+                    if (subscription.CommitmentTerm.RenewalConfiguration.RenewalDate != null)
+                    {
+                        renewalConfig.RenewalDate = subscription.CommitmentTerm.RenewalConfiguration.RenewalDate;
+                    }
+
+                    if (subscription.CommitmentTerm.RenewalConfiguration.ScheduledQuantity != null)
+                    {
+                        renewalConfig.ScheduledQuantity = subscription.CommitmentTerm.RenewalConfiguration.ScheduledQuantity;
+                    }
                 }
+
+
+
+                // 4. Create CommitmentTerm with RenewalConfiguration
+                                // 1. Create empty CommitmentTermDb
+                var commitmentTerm = new CommitmentTermDb();
+
+                // 2. Check and set Type
+                try 
+                {
+                    if (subscription != null && subscription.CommitmentTerm != null)
+                    {
+                        commitmentTerm.Type = subscription.CommitmentTerm.Type;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Warning: subscription or CommitmentTerm is null when setting Type");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error setting Type: " + ex.Message);
+                }
+
+                // 3. Check and set TermEndDate
+                try 
+                {
+                    if (subscription?.CommitmentTerm != null)
+                    {
+                        commitmentTerm.TermEndDate = subscription.CommitmentTerm.TermEndDate;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Warning: subscription or CommitmentTerm is null when setting TermEndDate");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error setting TermEndDate: " + ex.Message);
+                }
+
+                // 4. Check and set RenewalConfiguration
+                try 
+                {
+                    if (renewalConfig != null)
+                    {
+                        commitmentTerm.RenewalConfiguration = renewalConfig;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Warning: renewalConfig is null");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error setting RenewalConfiguration: " + ex.Message);
+                }
+
+                // 5. Initialize CommittedMinimalQuantities list
+                try 
+                {
+                    commitmentTerm.CommittedMinimalQuantities = new List<AikiDataBuilder.Model.Sherweb.Database.CommittedMinimalQuantity>();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error initializing CommittedMinimalQuantities: " + ex.Message);
+                }
+
+                // 6. Verify the object was created properly
+                try 
+                {
+                    if (commitmentTerm == null)
+                    {
+                        Console.WriteLine("Error: commitmentTerm is null after creation");
+                    }
+                    else
+                    {
+                        Console.WriteLine("CommitmentTerm created successfully with:");
+                        Console.WriteLine($"- Type: {commitmentTerm.Type}");
+                        Console.WriteLine($"- TermEndDate: {commitmentTerm.TermEndDate}");
+                        Console.WriteLine($"- RenewalConfiguration: {(commitmentTerm.RenewalConfiguration != null ? "Set" : "Null")}");
+                        Console.WriteLine($"- CommittedMinimalQuantities: {(commitmentTerm.CommittedMinimalQuantities != null ? "Initialized" : "Null")}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error during verification: " + ex.Message);
+                }
+                
+                newSubscription.CommitmentTerm = commitmentTerm;
+
+// 5. Add to database context
+                // 1. Get the customer entity
+                var customer = _sherwebDBContext.Customers
+                    .Include(c => c.Subscriptions) // Ensure subscriptions are loaded
+                    .FirstOrDefault(c => c.Id == _queryParameters["{{customerId}}"]);
+
+                if (customer == null)
+                {
+                    throw new Exception("Customer not found"); // Handle the error appropriately
+                }
+
+// 2. Assign commitment term to the new subscription
+                newSubscription.CommitmentTerm = commitmentTerm;
+
+// 3. Add new subscription to customer's subscriptions
+                customer.Subscriptions.Add(newSubscription);
+
+// 4. Save changes to database (persist the new subscription)
+                _sherwebDBContext.SaveChanges();
+
+// 5. Add committed minimal quantities if applicable
+                if (newSubscription.CommitmentTerm?.CommittedMinimalQuantities != null)
+                {
+                    foreach (var committedMinimalQuantity in newSubscription.CommitmentTerm.CommittedMinimalQuantities)
+                    {
+                        newSubscription.CommitmentTerm.CommittedMinimalQuantities.Add(
+                            new AikiDataBuilder.Model.Sherweb.Database.CommittedMinimalQuantity()
+                            {
+                                Quantity = committedMinimalQuantity.Quantity,
+                                CommittedUntil = committedMinimalQuantity.CommittedUntil,
+                            }
+                        );
+                    }
+                }
+
+// 6. Save changes again for committed quantities
+                _sherwebDBContext.SaveChanges();
+
             }
 
             await _sherwebDBContext.SaveChangesAsync(); // Ensure database changes are saved

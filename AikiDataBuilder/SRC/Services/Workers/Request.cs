@@ -19,14 +19,14 @@ public abstract class Request
     protected SherwebDbContext _sherwebDBContext;
 
     public Request(
-        HttpClient clientFactory,
+        IHttpClientFactory clientFactory,
         SherwebDbContext sherwebDBContext
         )
     {
         UrlEncodedFormContent = new List<KeyValuePair<string, string>>();
         _headers = new Dictionary<string, string>();
         _queryParameters = new Dictionary<string, string>();
-        _httpClient = clientFactory;
+        _httpClient = clientFactory.CreateClient();
         _sherwebDBContext = sherwebDBContext;
         
     }

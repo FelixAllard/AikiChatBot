@@ -23,6 +23,8 @@ public class SherwebWorkers : IHttpWorker
     }
 
 
+    public int WorkerId { get; set; }
+
     public async Task<OperationResult<IHttpWorker>> PrepareWorker(Dictionary<string, string> credentials)
     {
         _credentials = credentials;

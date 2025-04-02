@@ -15,7 +15,7 @@ namespace AikiDataBuilder.Services.SherwebFetcher.Requests;
 /// </summary>
 public class GetAllCustomers : Request
 {
-    public GetAllCustomers(HttpClient clientFactory, SherwebDbContext sherwebDBContext) : base(clientFactory, sherwebDBContext)
+    public GetAllCustomers(IHttpClientFactory clientFactory, SherwebDbContext sherwebDBContext) : base(clientFactory, sherwebDBContext)
     {
         Url = "https://api.sherweb.com/service-provider/v1/customers";
     }

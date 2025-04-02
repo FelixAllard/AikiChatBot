@@ -6,6 +6,10 @@ namespace AikiDataBuilder.Services.Workers;
 /// </summary>
 public interface IHttpWorker
 {
+    
+    
+    public int WorkerId { get; set; }
+    
     /// <summary>
     /// Creates the workers using all the information for the specific API
     /// </summary>
