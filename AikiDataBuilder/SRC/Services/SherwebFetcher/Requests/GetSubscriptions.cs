@@ -22,7 +22,7 @@ namespace AikiDataBuilder.Services.SherwebFetcher.Requests;
 /// </summary>
 public class GetSubscriptions : Request
 {
-    public GetSubscriptions(IHttpClientFactory clientFactory, SherwebDbContext sherwebDBContext) : base(clientFactory, sherwebDBContext)
+    public GetSubscriptions(IHttpClientFactory clientFactory) : base(clientFactory)
     {
         Url = "https://api.sherweb.com/service-provider/v1/billing/subscriptions?customerId={{customerId}}";
     }
@@ -32,8 +32,11 @@ public class GetSubscriptions : Request
     /// <param name="jsonContent">The content to serialize and then to add to the database</param>
     /// <returns></returns>
     /// <exception cref="InvalidOperationException"></exception>
-    public override async Task<OperationResult<string>> AddToDatabase(string jsonContent)
+    public override async Task<OperationResult<string>> AddToDatabase(IServiceScope scope, string jsonContent)
     {
+        
+        var sherwebDbContext = scope.ServiceProvider.GetRequiredService<SherwebDbContext>();
+        
         Exception exception = null;
         try
         {
@@ -54,11 +57,7 @@ public class GetSubscriptions : Request
             }
             
             // Drop all existing charges
-            _sherwebDBContext.Subscriptions.RemoveRange(_sherwebDBContext.Subscriptions);
-            _sherwebDBContext.SubscriptionFees.RemoveRange(_sherwebDBContext.SubscriptionFees);
-            _sherwebDBContext.CommitmentTerms.RemoveRange(_sherwebDBContext.CommitmentTerms);
-            _sherwebDBContext.RenewalConfigurations.RemoveRange(_sherwebDBContext.RenewalConfigurations);
-            _sherwebDBContext.CommittedMinimalQuantities.RemoveRange(_sherwebDBContext.CommittedMinimalQuantities);
+            
             
             
             foreach (var subscription in subscriptions.Items)
@@ -193,7 +192,7 @@ public class GetSubscriptions : Request
 
 // 5. Add to database context
                 // 1. Get the customer entity
-                var customer = _sherwebDBContext.Customers
+                var customer = sherwebDbContext.Customers
                     .Include(c => c.Subscriptions) // Ensure subscriptions are loaded
                     .FirstOrDefault(c => c.Id == _queryParameters["{{customerId}}"]);
 
@@ -209,7 +208,7 @@ public class GetSubscriptions : Request
                 customer.Subscriptions.Add(newSubscription);
 
 // 4. Save changes to database (persist the new subscription)
-                _sherwebDBContext.SaveChanges();
+                sherwebDbContext.SaveChanges();
 
 // 5. Add committed minimal quantities if applicable
                 if (newSubscription.CommitmentTerm?.CommittedMinimalQuantities != null)
@@ -227,11 +226,9 @@ public class GetSubscriptions : Request
                 }
 
 // 6. Save changes again for committed quantities
-                _sherwebDBContext.SaveChanges();
+                sherwebDbContext.SaveChanges();
 
             }
-
-            await _sherwebDBContext.SaveChangesAsync(); // Ensure database changes are saved
         }
         catch (JsonException jsonEx)
         {
@@ -251,7 +248,7 @@ public class GetSubscriptions : Request
 
         return new OperationResult<string>()
         {
-            Message = exception==null?"Successfully Added to database":$"Failed to add to database : {exception.GetBaseException()}\n{exception.StackTrace}",
+            Message = exception==null?"Successfully Added to database":$"Failed to add to database :{exception.GetBaseException()}\n{exception.StackTrace}",
             Exception = exception,
             Result = jsonContent,
             Status = exception==null?OperationResultStatus.Success:OperationResultStatus.Critical

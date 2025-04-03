@@ -63,8 +63,9 @@ public class SherwebRequestManager : IRequestManager
         Keys = GetCredentials().Result;
         _httpClientFactory = httpClientFactory;
         ServiceProvider = serviceProvider;
-        var tokenCreation = ResetAuthorizationToken();
 
+        var tokenCreation = ResetAuthorizationToken();
+        
         if (tokenCreation != null)
         {
             var (token, result) = tokenCreation.Result.Result;
@@ -489,6 +490,12 @@ public class SherwebRequestManager : IRequestManager
 
                         break;
                     case 2:
+                        SherwebDbContext.Subscriptions.RemoveRange(SherwebDbContext.Subscriptions);
+                        SherwebDbContext.SubscriptionFees.RemoveRange(SherwebDbContext.SubscriptionFees);
+                        SherwebDbContext.CommitmentTerms.RemoveRange(SherwebDbContext.CommitmentTerms);
+                        SherwebDbContext.RenewalConfigurations.RemoveRange(SherwebDbContext.RenewalConfigurations);
+                        SherwebDbContext.CommittedMinimalQuantities.RemoveRange(SherwebDbContext.CommittedMinimalQuantities);
+                        SherwebDbContext.SaveChanges();
                         var allCustomersSubscriptions = SherwebDbContext.Customers.ToList();
                         int xTest = 0;
                         foreach (var customer in allCustomersSubscriptions)

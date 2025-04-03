@@ -16,18 +16,16 @@ public abstract class Request
     protected List<KeyValuePair<string, string>> UrlEncodedFormContent = new List<KeyValuePair<string, string>>();
     protected JsonContent _jsonContent;
     protected Dictionary<string, string> _queryParameters = new Dictionary<string, string>();
-    protected SherwebDbContext _sherwebDBContext;
 
     public Request(
-        IHttpClientFactory clientFactory,
-        SherwebDbContext sherwebDBContext
+        IHttpClientFactory clientFactory
         )
     {
         UrlEncodedFormContent = new List<KeyValuePair<string, string>>();
         _headers = new Dictionary<string, string>();
         _queryParameters = new Dictionary<string, string>();
         _httpClient = clientFactory.CreateClient();
-        _sherwebDBContext = sherwebDBContext;
+
         
     }
     /// <summary>
@@ -35,7 +33,7 @@ public abstract class Request
     /// </summary>
     /// <param name="jsonContent"></param>
     /// <returns></returns>
-    public abstract Task<OperationResult<string>> AddToDatabase(string jsonContent);
+    public abstract Task<OperationResult<string>> AddToDatabase(IServiceScope scope, string jsonContent);
 
     public OperationResult<string> SetUrl(string url)
     {
@@ -174,6 +172,10 @@ public abstract class Request
 
     public async virtual Task<OperationResult<string>> SendRequest(float timeout = 3000)
     {
+        
+        
+        
+        
         _httpClient.Timeout = TimeSpan.FromSeconds(timeout);
         OperationResult<string> builtUrl = BuildUrl();
         if (builtUrl.Status != OperationResultStatus.Success)

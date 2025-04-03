@@ -15,7 +15,7 @@ namespace AikiDataBuilder.Services.SherwebFetcher.Requests;
 /// </summary>
 public class GetAllCustomers : Request
 {
-    public GetAllCustomers(IHttpClientFactory clientFactory, SherwebDbContext sherwebDBContext) : base(clientFactory, sherwebDBContext)
+    public GetAllCustomers(IHttpClientFactory clientFactory) : base(clientFactory)
     {
         Url = "https://api.sherweb.com/service-provider/v1/customers";
     }
@@ -25,8 +25,9 @@ public class GetAllCustomers : Request
     /// <param name="jsonContent">The content to serialize and then to add to the database</param>
     /// <returns></returns>
     /// <exception cref="InvalidOperationException"></exception>
-    public override async Task<OperationResult<string>> AddToDatabase(string jsonContent)
+    public override async Task<OperationResult<string>> AddToDatabase(IServiceScope scope, string jsonContent)
     {
+        var sherwebDbContext = scope.ServiceProvider.GetRequiredService<SherwebDbContext>();
         Exception exception = null;
         try
         {
@@ -47,11 +48,11 @@ public class GetAllCustomers : Request
             }
             
             // Drop all customers
-            _sherwebDBContext.Customers.RemoveRange(_sherwebDBContext.Customers);
+            sherwebDbContext.Customers.RemoveRange(sherwebDbContext.Customers);
             foreach (var customer in response.Items)
             {
                 // Add new customer
-                _sherwebDBContext.Customers.Add(new SherwebModel()
+                sherwebDbContext.Customers.Add(new SherwebModel()
                 {
                     Id = customer.Id,
                     DisplayName = customer.DisplayName,
@@ -61,7 +62,7 @@ public class GetAllCustomers : Request
 
             }
 
-            await _sherwebDBContext.SaveChangesAsync(); // Ensure database changes are saved
+            await sherwebDbContext.SaveChangesAsync(); // Ensure database changes are saved
         }
         catch (JsonException jsonEx)
         {

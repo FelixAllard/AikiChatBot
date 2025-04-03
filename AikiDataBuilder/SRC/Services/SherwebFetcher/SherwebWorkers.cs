@@ -15,11 +15,14 @@ public class SherwebWorkers : IHttpWorker
     private float _currentTimeout;
     //private Request _authentificationRequest;
     private int authorizationTryCount = 0;
+    private IServiceScopeFactory _scope;
     public SherwebWorkers(
-        IConfiguration configuration
+        IConfiguration configuration,
+        IServiceScopeFactory scopeFactory
     )
     {
         _configuration = configuration;
+        _scope = scopeFactory;
     }
 
 
@@ -74,7 +77,12 @@ public class SherwebWorkers : IHttpWorker
             Console.WriteLine(finalResult);
 
             // Handle database update
-            await _currentRequest.AddToDatabase(finalResult);
+
+            using (var scope = _scope.CreateScope())
+            {
+                await _currentRequest.AddToDatabase(scope,finalResult); 
+            }
+            
         }
         catch (Exception e)
         {

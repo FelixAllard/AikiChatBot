@@ -17,7 +17,7 @@ namespace AikiDataBuilder.Services.SherwebFetcher.Requests;
 /// </summary>
 public class GetReceivableCharges : Request
 {
-    public GetReceivableCharges(IHttpClientFactory clientFactory, SherwebDbContext sherwebDBContext) : base(clientFactory, sherwebDBContext)
+    public GetReceivableCharges(IHttpClientFactory clientFactory) : base(clientFactory)
     {
         Url = "https://api.sherweb.com/service-provider/v1/billing/receivable-charges?customerId={{customerId}}";
     }
@@ -27,8 +27,9 @@ public class GetReceivableCharges : Request
     /// <param name="jsonContent">The content to serialize and then to add to the database</param>
     /// <returns></returns>
     /// <exception cref="InvalidOperationException"></exception>
-    public override async Task<OperationResult<string>> AddToDatabase(string jsonContent)
+    public override async Task<OperationResult<string>> AddToDatabase(IServiceScope scope, string jsonContent)
     {
+        var sherwebDbContext = scope.ServiceProvider.GetRequiredService<SherwebDbContext>();
         Exception exception = null;
         try
         {
@@ -48,11 +49,11 @@ public class GetReceivableCharges : Request
             }
             
             // Drop all existing charges
-            _sherwebDBContext.ReceivableCharge.RemoveRange(_sherwebDBContext.ReceivableCharge);
-            _sherwebDBContext.ReceivableCharges.RemoveRange(_sherwebDBContext.ReceivableCharges);
+            sherwebDbContext.ReceivableCharge.RemoveRange(sherwebDbContext.ReceivableCharge);
+            sherwebDbContext.ReceivableCharges.RemoveRange(sherwebDbContext.ReceivableCharges);
 
 
-            var receivableCharges = _sherwebDBContext.ReceivableCharges.Add(new ReceivableCharges()
+            var receivableCharges = sherwebDbContext.ReceivableCharges.Add(new ReceivableCharges()
             {
                 //Id Is incremental
                 PeriodFrom = chargeModel.PeriodFrom,
@@ -81,7 +82,7 @@ public class GetReceivableCharges : Request
                 });
             }
 
-            await _sherwebDBContext.SaveChangesAsync(); // Ensure database changes are saved
+            await sherwebDbContext.SaveChangesAsync(); // Ensure database changes are saved
         }
         catch (JsonException jsonEx)
         {

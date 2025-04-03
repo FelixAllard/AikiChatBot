@@ -26,13 +26,15 @@ public class SherwebFetcher : IApiFetcher
     private SherwebDbContext _sherwebDbContext;
     private ILogger<SherwebFetcher> _logger;
     private IServiceProvider _serviceProvider;
+    private IServiceScopeFactory _scope;
     public SherwebFetcher(
         IHttpClientFactory httpClientFactory,
         SherwebDbContext sherwebDbContext,
         IConfiguration configuration,
         SherwebRequestManager requestManager,
         ILogger<SherwebFetcher> logger,
-        IServiceProvider serviceProvider
+        IServiceProvider serviceProvider,
+        IServiceScopeFactory serviceScopeFactory
     )
     {
         Workers = new List<IHttpWorker>();
@@ -42,6 +44,7 @@ public class SherwebFetcher : IApiFetcher
         this.requestManager = requestManager;
         _logger = logger;
         _serviceProvider = serviceProvider;
+        _scope = serviceScopeFactory;
         
         var resultCreationWorkers = CreateWorkers();
         if(resultCreationWorkers.Status!= OperationResultStatus.Success)
@@ -156,11 +159,12 @@ public class SherwebFetcher : IApiFetcher
         
         for (int i = 0; i < workersCount; i++)
         {
-            var sherwebWorker = new SherwebWorkers(_configuration);
-            sherwebWorker.PrepareWorker(credidentials.Result);
+            /*var sherwebWorker = new SherwebWorkers(_configuration);
+            sherwebWorker.PrepareWorker(credidentials.Result);*/
             Workers.Add(
                 new SherwebWorkers(
-                    _configuration
+                    _configuration,
+                    _scope
                 )
             );
         }
@@ -193,11 +197,12 @@ public class SherwebFetcher : IApiFetcher
         
         for (int i = 0; i < _numberOfWorkers; i++)
         {
-            var sherwebWorker = new SherwebWorkers(_configuration);
+            var sherwebWorker = new SherwebWorkers(_configuration,_scope);
             sherwebWorker.PrepareWorker(credidentials.Result);
             Workers.Add(
                 new SherwebWorkers(
-                    _configuration
+                    _configuration,
+                    _scope
                 )
             );
         }
@@ -217,7 +222,7 @@ public class SherwebFetcher : IApiFetcher
 
         for (int i = 0; i < _numberOfWorkers; i++)
         {
-            var worker = new SherwebWorkers(_configuration);
+            var worker = new SherwebWorkers(_configuration, _scope);
             worker.WorkerId = i;
             Workers.Add(worker);
     
