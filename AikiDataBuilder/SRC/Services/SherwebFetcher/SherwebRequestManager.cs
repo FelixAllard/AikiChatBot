@@ -513,7 +513,6 @@ public class SherwebRequestManager : IRequestManager
                                 }
                             });
                             AddRequest(getSubscriptions);
-                            break;
                         }
 
                         break;
