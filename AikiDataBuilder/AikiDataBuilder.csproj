@@ -51,6 +51,7 @@
       <Compile Remove="SRC\Model\Sherweb\Database\PayableCharges\**" />
       <Compile Remove="SRC\Model\Sherweb\Database\Platform\**" />
       <Compile Remove="SRC\Model\Sherweb\Database\Customer\**" />
+      <Compile Remove="SRC\Services\SherwebFetcher\Requests\GetCustomerPlatformDetails.cs" />
     </ItemGroup>
 
     <ItemGroup>
