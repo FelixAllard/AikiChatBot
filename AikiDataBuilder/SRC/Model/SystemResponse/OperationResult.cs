@@ -153,6 +153,41 @@ public class OperationResult<T>
         
     }
 
+
+    public static OperationResult<T> Success(string message)
+    {
+        return new OperationResult<T>(
+            message, 
+            OperationResultStatus.Success
+        );
+    }
+
+    public static OperationResult<T> Fail(string message, Exception exception = null)
+    {
+        return new OperationResult<T>(
+            message, 
+            OperationResultStatus.Failed,
+            exception
+        );
+    }
+    public static OperationResult<T> Critical(string message, Exception exception = null)
+    {
+        return new OperationResult<T>(
+            message, 
+            OperationResultStatus.Critical,
+            exception
+        );
+    }
+    public static OperationResult<T> PartialSuccess(string message, T result)
+    {
+        return new OperationResult<T>(
+            message, 
+            OperationResultStatus.Critical,
+            null,
+            result
+        );
+    }
+
     /// <summary>
     /// Basic ToString Function
     /// </summary>
@@ -161,4 +196,6 @@ public class OperationResult<T>
     {
         return $"{nameof(Message)}: {Message}, {nameof(Status)}: {Status}, {nameof(Exception)}: {Exception.Message}";
     }
+
+
 }

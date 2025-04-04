@@ -341,6 +341,70 @@ public class SherwebRequestManager : IRequestManager
             };
         }
     }
+    
+    /// <summary>
+    /// Will reset the authorization Token
+    /// </summary>
+    /// <returns> Returns a string which is the authorization token and a bool which is whether it worker or not</returns>
+    public async Task<OperationResult<(string, bool)>> ResetAuthorizationTokenForDistributorApi()
+    {
+        HttpClient authorizationRequest = _httpClientFactory.CreateClient();
+        authorizationRequest.Timeout = TimeSpan.FromSeconds(1000);
+        var request = new HttpRequestMessage(HttpMethod.Post, "https://api.sherweb.com/auth/oidc/connect/token");
+
+        var collection = new List<KeyValuePair<string, string>>
+        {
+            new("client_id", Keys["ClientId"]),
+            new("client_secret", Keys["ClientSecret"]),
+            new("scope", "distributor"),
+            new("grant_type", "client_credentials")
+        };
+
+        request.Content = new FormUrlEncodedContent(collection);
+
+        var response = await authorizationRequest.SendAsync(request);
+        string jsonResponse = await response.Content.ReadAsStringAsync(); // Read response content
+
+        if (response.IsSuccessStatusCode)
+        {
+            var tokenResponse = JsonSerializer.Deserialize<TokenResponse>(jsonResponse, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (response.StatusCode != HttpStatusCode.OK)
+            {
+                return new OperationResult<(string, bool)>
+                {
+                    Result = (tokenResponse?.Access_Token, false),
+                    Message = $"Received a non-200 OK response ({response.StatusCode}): {jsonResponse}", // Include API response
+                    Status = OperationResultStatus.Failed
+                };
+            }
+
+            if (tokenResponse == null)
+            {
+                return new OperationResult<(string, bool)>
+                {
+                    Result = (null, false),
+                    Message = $"Failed to retrieve access token. API Response: {jsonResponse}", // Include API response
+                    Status = OperationResultStatus.Failed
+                };
+            }
+            return new OperationResult<(string, bool)>
+            {
+                Result = (tokenResponse.Access_Token, true),
+                Message = "Access token retrieved successfully",
+                Status = OperationResultStatus.Success
+            };
+        }
+        else
+        {
+            return new OperationResult<(string, bool)>
+            {
+                Message = $"Failed to retrieve access token. API Response: {jsonResponse}", // Include API response
+                Status = OperationResultStatus.Critical,
+                Exception = new Exception($"Failed to retrieve token: {response.StatusCode}")
+            };
+        }
+    }
 
 
     public async Task<OperationResult<bool>> ReturnRequest(Request request, RequestReturnJustification shouldStop, bool critical = false)
@@ -459,8 +523,8 @@ public class SherwebRequestManager : IRequestManager
                         break;
                     case 1:
                         //NOT USED RIGHT NOW SO WE SKIP
-                        retrievalStep[0] = 2;
-                        goto case 2;
+                        /*retrievalStep[0] = 2;
+                        goto case 3;*/
 
                         var allCustomersReceivableCharges = SherwebDbContext.Customers.ToList();
                         foreach (var customer in allCustomersReceivableCharges)
@@ -484,7 +548,7 @@ public class SherwebRequestManager : IRequestManager
                                 }
                             });
                             AddRequest(getReceivableChargesRequest);
-
+ 
 
                         }
 
@@ -523,7 +587,38 @@ public class SherwebRequestManager : IRequestManager
                         }
 
                         break;
+                    case 3:
+                        SherwebDbContext.PayableCharges.RemoveRange(SherwebDbContext.PayableCharges);
+                        SherwebDbContext.PayableCharge.RemoveRange(SherwebDbContext.PayableCharge);
+                        SherwebDbContext.Tags.RemoveRange(SherwebDbContext.Tags);
+                        SherwebDbContext.Taxes.RemoveRange(SherwebDbContext.Taxes);
+                        SherwebDbContext.Invoices.RemoveRange(SherwebDbContext.Invoices);
+                        SherwebDbContext.Deductions.RemoveRange(SherwebDbContext.Deductions);
+                        SherwebDbContext.Fees.RemoveRange(SherwebDbContext.Fees);
+                        SherwebDbContext.SaveChanges();
+
+                        var bearerTokenDistributor = ResetAuthorizationTokenForDistributorApi().Result;
+                        var (token, result) = bearerTokenDistributor.Result;
+                        if (!result)
+                            break;
+                        
+                        var getPayableCharges = InstantiateRequestClass<GetPayableCharges>().Result;
+                        getPayableCharges.SetBearerToken(token);
+                        getPayableCharges.SetHeaderVariables(new Dictionary<string, string>()
+                        {
+                            {
+                                "Ocp-Apim-Subscription-Key",
+                                Keys[
+                                    "SubscriptionKey"
+                                ]
+                            }
+                        });
+                        AddRequest(getPayableCharges);
+                        
+
+                        break;
                     default:
+                        //Sigma Male exit
                         noMoreRequest = true;
                         return await Task.FromResult(
                             new OperationResult<(bool hasRequest, Request? request, bool shouldStop)>()
