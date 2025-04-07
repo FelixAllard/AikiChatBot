@@ -261,6 +261,7 @@ public class SherwebFetcher : IApiFetcher
             {
                 while (true)
                 {
+                    await Task.Delay(1500);
                     try
                     {
                         // Fetch next request
@@ -293,19 +294,18 @@ public class SherwebFetcher : IApiFetcher
                         {
                             
                             // No request available right now — retry after a small delay
-                            await Task.Delay(100);
                             requestManager.ReturnWorker(worker.WorkerId);
+                            await Task.Delay(100);
                         }
                     }
                     catch (Exception ex)
                     {
-
+                        requestManager.ReturnWorker(worker.WorkerId);
                         _logger.LogError($"Error processing request: {ex.Message}\nStack Trace : {ex.StackTrace}");
-
                     }
                 }
             }));
-            await Task.Delay(1500);
+            
         }
 
         await Task.WhenAll(tasks);
@@ -329,6 +329,9 @@ public class SherwebFetcher : IApiFetcher
 
         public int Value => _value;
 
+        /// <summary>
+        /// Thread Safe Function
+        /// </summary>
         public void Increment()
         {
             Interlocked.Increment(ref _value);

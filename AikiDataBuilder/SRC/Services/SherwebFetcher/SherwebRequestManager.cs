@@ -17,8 +17,7 @@ namespace AikiDataBuilder.Services.SherwebFetcher;
 public class SherwebRequestManager : IRequestManager
 {
     public ConcurrentQueue<Request> Requests { get; set; }
-    public int AvailableWorkers { get; set; } = 3;
-    public int MaxWorkers { get; } = 3;
+    public int AvailableWorkers { get; set; } = 10000;
     private IConfiguration Configuration { get; }
     private SherwebDbContext SherwebDbContext { get; }
     
@@ -32,11 +31,11 @@ public class SherwebRequestManager : IRequestManager
     
     
     private string bearerToken;
-    public bool AllWorkersAvailable
+    public bool AllActiveWorkers
     {
         get
         {
-            if (MaxWorkers==AvailableWorkers)
+            if (0==AvailableWorkers)
             {
                 //Will Continue the queue creation
                 _waitHandle.Set();
@@ -126,7 +125,6 @@ public class SherwebRequestManager : IRequestManager
         }, token);
     }
     /// <summary>
-    /// 
     /// This can be used to stop the loop, thought I won't be using it, it can be practical
     /// </summary>
     public void StopTask()
@@ -192,16 +190,16 @@ public class SherwebRequestManager : IRequestManager
             return new OperationResult<bool>()
             {
                 Message = $"Worker already active",
-                Result = AllWorkersAvailable,
+                Result = AllActiveWorkers,
                 Exception = null,
                 Status = OperationResultStatus.Success
             };
         activeWorkers.Add(clientId);
-        AvailableWorkers += numberOfWorkers;
+        AvailableWorkers = activeWorkers.Count;
         return new OperationResult<bool>()
         {
             Message = $"Worker count {numberOfWorkers}",
-            Result = AllWorkersAvailable,
+            Result = AllActiveWorkers,
             Exception = null,
             Status = OperationResultStatus.Success
         };
@@ -213,16 +211,16 @@ public class SherwebRequestManager : IRequestManager
             return new OperationResult<bool>()
             {
                 Message = $"Worker not active",
-                Result = AllWorkersAvailable,
+                Result = AllActiveWorkers,
                 Exception = null,
                 Status = OperationResultStatus.Success
             };
         activeWorkers.Remove(clientId);
-        AvailableWorkers -= numberOfWorkers;
+        AvailableWorkers = activeWorkers.Count;
         return new OperationResult<bool>()
         {
             Message = $"Worker count {numberOfWorkers}",
-            Result = AllWorkersAvailable,
+            Result = AllActiveWorkers,
             Exception = null,
             Status = OperationResultStatus.Success
         };
@@ -548,10 +546,7 @@ public class SherwebRequestManager : IRequestManager
                                 }
                             });
                             AddRequest(getReceivableChargesRequest);
- 
-
                         }
-
                         break;
                     case 2:
                         SherwebDbContext.Subscriptions.RemoveRange(SherwebDbContext.Subscriptions);
