@@ -5,6 +5,9 @@ using AikiDataBuilder.Services.DataFetcher;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 
 namespace AikiDataBuilder.Controllers;
@@ -41,14 +44,14 @@ public class DataBuilderController : ControllerBase
         var allData = new 
         {
             Customers = await _sherwebDbContext.Customers
-                .Include(c => c.Subscriptions) // include foreign key relationships
+                .Include(c => c.Subscriptions)
                     .ThenInclude(s => s.CommitmentTerm)
                         .ThenInclude(x => x.CommittedMinimalQuantities)
-                .Include(c => c.Subscriptions) // include foreign key relationships
+                .Include(c => c.Subscriptions) 
                     .ThenInclude(s => s.CommitmentTerm)
                         .ThenInclude(x=> x.RenewalConfiguration)
                 .Include(c => c.Subscriptions)
-                    .ThenInclude(s => s.Fees) //This one is weird
+                    .ThenInclude(s => s.Fees)
                 .Include(c => c.ReceivableCharges)
                     .ThenInclude(s=> s.Charges)
                 .Include(c=>c.Platform)
@@ -83,5 +86,122 @@ public class DataBuilderController : ControllerBase
         _logger.LogInformation("Finished all Querries");
         return Ok(json);
     }
+    
 
+    [HttpGet("/customers")]
+    public async Task<IActionResult> GetAllCustomer()
+    {
+        var customers = await _sherwebDbContext.Customers
+            .Include(c => c.Subscriptions)
+            .ThenInclude(s => s.CommitmentTerm)
+            .ThenInclude(x => x.CommittedMinimalQuantities)
+            .Include(c => c.Subscriptions)
+            .ThenInclude(s => s.CommitmentTerm)
+            .ThenInclude(x => x.RenewalConfiguration)
+            .Include(c => c.Subscriptions)
+            .ThenInclude(s => s.Fees)
+            .Include(c => c.ReceivableCharges)
+            .ThenInclude(s => s.Charges)
+            .Include(c => c.Platform)
+            .ThenInclude(s => s.PlatformDetails)
+            .Include(c => c.Platform)
+            .ThenInclude(s => s.MeterUsages)
+            .ToListAsync();
+
+        var serializerSettings = new JsonSerializerSettings
+        {
+            
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+        };
+
+        var flattenedList = new List<Dictionary<string, object>>();
+
+        foreach (var customer in customers)
+        {
+            var json = JsonConvert.SerializeObject(customer, serializerSettings); // <-- 🔥 ignore loops
+            var jObject = JObject.Parse(json);
+
+            var flat = new Dictionary<string, object>();
+            Flatten(jObject, flat, null);
+
+            flattenedList.Add(flat);
+        }
+
+        _logger.LogInformation("Finished all Queries");
+
+        var compactJson = JsonConvert.SerializeObject(flattenedList, Formatting.None); // <-- FORCE minified
+
+        return Ok(compactJson);
+    }
+
+
+    [HttpGet("/payable-charges")]
+    public async Task<IActionResult> GetAllPayableCharges()
+    {
+        var PayableCharges = await _sherwebDbContext.PayableCharge
+            .Include(c => c.Deductions)
+            .Include(c => c.Tags)
+            .Include(c => c.Invoice)
+            .Include(c => c.Fees)
+            .Include(c => c.Taxes)
+            .ToListAsync();
+        var serializerSettings = new JsonSerializerSettings
+        {
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+            
+        };
+
+        var flattenedList = new List<Dictionary<string, object>>();
+
+        foreach (var customer in PayableCharges)
+        {
+            var json = JsonConvert.SerializeObject(customer, serializerSettings); // <-- 🔥 ignore loops
+            var jObject = JObject.Parse(json);
+
+            var flat = new Dictionary<string, object>();
+            Flatten(jObject, flat, null);
+
+            flattenedList.Add(flat);
+        }
+
+        _logger.LogInformation("Finished all Queries");
+
+        var compactJson = JsonConvert.SerializeObject(flattenedList, Formatting.None); // <-- FORCE minified
+        return Ok(compactJson);
+    }
+    
+    
+// --- Helper to flatten nested JSON ---
+    private void Flatten(JToken token, Dictionary<string, object> flat, string prefix)
+    {
+        if (token is JObject jObject)
+        {
+            foreach (var property in jObject.Properties())
+            {
+                var key = string.IsNullOrEmpty(prefix) ? property.Name : $"{prefix}_{property.Name}";
+
+                Flatten(property.Value, flat, key);
+            }
+        }
+        else if (token is JArray jArray)
+        {
+            for (int i = 0; i < jArray.Count; i++)
+            {
+                Flatten(jArray[i], flat, $"{prefix}_{i}"); // array index becomes part of the key
+            }
+        }
+        else if (token is JValue jValue)
+        {
+            flat[prefix] = jValue.Value; // finally safe to assign
+        }
+    }
+
+
+
+    private string Combine(string prefix, string name)
+    {
+        if (string.IsNullOrEmpty(prefix))
+            return name;
+        return $"{prefix}.{name}";
+    }
 }

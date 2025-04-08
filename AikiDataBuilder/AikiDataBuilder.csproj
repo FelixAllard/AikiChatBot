@@ -9,6 +9,7 @@
 
     <ItemGroup>
         <PackageReference Include="EntityFramework" Version="6.5.1" />
+        <PackageReference Include="JsonFlatten" Version="1.0.4" />
         <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.13" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.13"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.13" />

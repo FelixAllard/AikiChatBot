@@ -261,7 +261,7 @@ public class SherwebFetcher : IApiFetcher
             {
                 while (true)
                 {
-                    await Task.Delay(1500);
+                    await Task.Delay(2000);
                     try
                     {
                         // Fetch next request
