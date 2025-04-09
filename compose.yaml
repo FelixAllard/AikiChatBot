@@ -18,3 +18,15 @@
 volumes:
   mssql-data:
       
+
+  asadiscordbot:
+    image: asadiscordbot
+    build:
+      context: .
+      dockerfile: ASADiscordBot/Dockerfile
+
+  asadiscordbot:
+    image: asadiscordbot
+    build:
+      context: .
+      dockerfile: ASADiscordBot/Dockerfile

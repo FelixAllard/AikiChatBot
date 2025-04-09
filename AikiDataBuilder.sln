@@ -9,6 +9,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestingProject", "TestingProject\TestingProject.csproj", "{2D470F1A-92EA-4BC3-85C2-A6F288DF0785}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASADiscordBot", "ASADiscordBot\ASADiscordBot.csproj", "{CB7D12C3-F75C-409B-98DA-09799EA504DB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,5 +25,9 @@ Global
 		{2D470F1A-92EA-4BC3-85C2-A6F288DF0785}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2D470F1A-92EA-4BC3-85C2-A6F288DF0785}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2D470F1A-92EA-4BC3-85C2-A6F288DF0785}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CB7D12C3-F75C-409B-98DA-09799EA504DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CB7D12C3-F75C-409B-98DA-09799EA504DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CB7D12C3-F75C-409B-98DA-09799EA504DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CB7D12C3-F75C-409B-98DA-09799EA504DB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
