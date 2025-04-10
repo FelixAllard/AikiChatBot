@@ -1,8 +1,11 @@
-﻿using ASADiscordBot.SlashCommand;
+﻿using ASADiscordBot.Database;
+using ASADiscordBot.SlashCommand;
 using Discord;
 using Discord.WebSocket;
 using DotNetEnv;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Identity.Client;
 
 namespace ASADiscordBot;
 
@@ -21,12 +24,22 @@ public class Program
         };
         
         
-        
         var collection = new ServiceCollection()
             .AddSingleton(config)
-            .AddSingleton<DiscordSocketConfig>()
-            
-        ;
+            .AddSingleton<DiscordSocketClient>()
+            // Add your DbContext here:
+            .AddDbContext<ASADbContext>(options =>
+                options.UseSqlServer(
+                        // Read from env, or config file
+                        Environment.GetEnvironmentVariable("DEFAULT_CONNECTION_STRING"),
+                        sqlOptions => sqlOptions.EnableRetryOnFailure(
+                            maxRetryCount: 5,
+                            maxRetryDelay: TimeSpan.FromSeconds(30),
+                            errorNumbersToAdd: null)
+                    )
+                    .EnableSensitiveDataLogging()
+            );
+
         
         
         
@@ -36,11 +49,8 @@ public class Program
     
     public static async Task Main()
     {
-        
-        
-        
-        _serviceProvider = CreateProvider();
         Env.Load("../../../../.env");
+        _serviceProvider = CreateProvider();
         //GOES TO THE ROOT OF THE SOLUTION
         var token = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
         

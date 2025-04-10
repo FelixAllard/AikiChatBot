@@ -14,19 +14,12 @@
       - "1433:1433"
     volumes:
       - mssql-data:/var/opt/mssql
-
+  asadiscordbot:
+    image: asadiscordbot
+    build:
+      context: .
+      dockerfile: ASADiscordBot/Dockerfile
+ 
 volumes:
   mssql-data:
       
-
-  asadiscordbot:
-    image: asadiscordbot
-    build:
-      context: .
-      dockerfile: ASADiscordBot/Dockerfile
-
-  asadiscordbot:
-    image: asadiscordbot
-    build:
-      context: .
-      dockerfile: ASADiscordBot/Dockerfile
