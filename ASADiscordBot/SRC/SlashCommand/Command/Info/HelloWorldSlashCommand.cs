@@ -9,8 +9,9 @@ public class HelloWorldSlashCommand : ISlashCommand
     public bool IsGlobal { get; set; }
     public SlashCommandBuilder builder { get; set; }
     public string Name { get; } = "hello-world";
+    public IServiceProvider ServiceProvider { get; set; }
 
-    public async Task<OperationResult<bool>> Init()
+    public async Task<OperationResult<bool>> Init(IServiceProvider serviceProvider)
     {
         builder = new SlashCommandBuilder();
         builder.WithName(Name);

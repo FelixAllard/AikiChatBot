@@ -13,12 +13,13 @@ public class SlashCommandManager
 {
     public static SlashCommandManager Instance { get; } = new SlashCommandManager();
 
-    public DiscordSocketClient client;
-    
-    public List<ISlashCommand> slashCommands= new List<ISlashCommand>();
-    public static SlashCommandManager Init(DiscordSocketClient client)
+    private DiscordSocketClient client;
+    private List<ISlashCommand> slashCommands= new List<ISlashCommand>();
+    private IServiceProvider _serviceProvider;
+    public static SlashCommandManager Init(DiscordSocketClient client, IServiceProvider services)
     {
         Instance.client = client;
+        Instance._serviceProvider = services;
         return Instance;
     }
     

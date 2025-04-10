@@ -55,7 +55,7 @@ public class Program
         var token = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
         
         _client = new DiscordSocketClient();
-        SlashCommandManager.Init(_client);
+        SlashCommandManager.Init(_client, _serviceProvider);
         
         _client.Log += Log;
         _client.Ready += SlashCommandManager.Instance.Build();

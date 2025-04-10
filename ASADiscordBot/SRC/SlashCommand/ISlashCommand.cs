@@ -9,8 +9,10 @@ public interface ISlashCommand
     public bool IsGlobal { get; set; }
     public SlashCommandBuilder builder { get; set; }
     public string Name { get;}
-    
-    public Task<OperationResult<bool>> Init();
+    public IServiceProvider ServiceProvider { get; set; }
+
+
+    public Task<OperationResult<bool>> Init(IServiceProvider serviceProvider = null);
     public Task HandleClientCall(SocketSlashCommand command);
 
     public SlashCommandBuilder GetBuilder()
