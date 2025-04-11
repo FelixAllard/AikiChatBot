@@ -71,6 +71,5 @@ public class SlashCommandManager
         var foundFunction = slashCommands.FirstOrDefault(x => x.Name == command.Data.Name);
         
         await foundFunction.HandleClientCall(command);
-        
     }
 }
