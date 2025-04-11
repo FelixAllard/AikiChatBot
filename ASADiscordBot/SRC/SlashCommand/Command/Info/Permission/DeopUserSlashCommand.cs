@@ -38,12 +38,12 @@ public class DeopUserSlashCommand : ISlashCommand
         {
             var context = scope.ServiceProvider.GetRequiredService<ASADbContext>();
 
-            var userToOp =  context.Identities.FirstOrDefault(x => x.Id == guildUser.Id);
+            var userToOp =  context.Identities.FirstOrDefault(x => x.DiscordUserId == guildUser.Id);
             if (userToOp == null)
             {
                 context.Identities.Add(new Identity()
                 {
-                    Id = guildUser.Id,
+                    DiscordUserId = guildUser.Id,
                     Username = guildUser.Username,
                     IsAdmin = false,
                     IsWhitelisted = true,
