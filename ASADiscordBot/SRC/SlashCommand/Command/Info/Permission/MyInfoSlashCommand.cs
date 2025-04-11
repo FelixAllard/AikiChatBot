@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ASADiscordBot.SlashCommand.Command.Info.Permission;
 
-public class ElevateUserSlashCommand : ISlashCommand
+public class MyInfoSlashCommand : ISlashCommand
 {
     public bool IsGlobal { get; set; }
     public SlashCommandBuilder builder { get; set; }

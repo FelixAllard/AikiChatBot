@@ -50,7 +50,12 @@ public class DeopUserSlashCommand : ISlashCommand
                     Password = "Aiki_Temp7!"
                 });
             }
-            userToOp.IsAdmin = false;
+            else
+            {
+                userToOp.IsAdmin = false;
+            }
+            context.SaveChanges();
+            
         }
 
         

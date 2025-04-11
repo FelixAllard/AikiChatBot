@@ -45,7 +45,7 @@ public class SlashCommandManager
                     continue;
                 }
                 slashCommands.Add(instance);
-                buildTasks.Add(instance.Init()); // Start building immediately
+                buildTasks.Add(instance.Init(_serviceProvider)); // Start building immediately
             }
 
             await Task.WhenAll(buildTasks); // Await all builds
