@@ -19,8 +19,7 @@ public class Program
         //Discord Socket COnfigs
         var config = new DiscordSocketConfig()
         {
-            
-            //...
+            HandlerTimeout = 10000
         };
         
         
@@ -54,7 +53,8 @@ public class Program
         //GOES TO THE ROOT OF THE SOLUTION
         var token = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
         
-        _client = new DiscordSocketClient();
+        _client = new DiscordSocketClient(_serviceProvider.GetRequiredService<DiscordSocketConfig>());
+
         SlashCommandManager.Init(_client, _serviceProvider);
         
         _client.Log += Log;
