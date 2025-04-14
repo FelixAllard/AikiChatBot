@@ -10,6 +10,8 @@ public interface ISlashCommand
     public SlashCommandBuilder builder { get; set; }
     public string Name { get;}
     public IServiceProvider ServiceProvider { get; set; }
+    
+    public IHttpClientFactory HttpClientFactory { get; set; }
 
 
     public Task<OperationResult<bool>> Init(IServiceProvider serviceProvider = null);

@@ -19,13 +19,14 @@ public class Program
         //Discord Socket COnfigs
         var config = new DiscordSocketConfig()
         {
-            HandlerTimeout = 10000
+            HandlerTimeout = 100000
         };
         
         
         var collection = new ServiceCollection()
             .AddSingleton(config)
             .AddSingleton<DiscordSocketClient>()
+            .AddHttpClient()
             // Add your DbContext here:
             .AddDbContext<ASADbContext>(options =>
                 options.UseSqlServer(
@@ -55,7 +56,11 @@ public class Program
         
         _client = new DiscordSocketClient(_serviceProvider.GetRequiredService<DiscordSocketConfig>());
 
-        SlashCommandManager.Init(_client, _serviceProvider);
+        SlashCommandManager.Init(
+            _client, 
+            _serviceProvider, 
+            _serviceProvider.GetRequiredService<IHttpClientFactory>()
+        );
         
         _client.Log += Log;
         _client.Ready += SlashCommandManager.Instance.Build();

@@ -16,7 +16,10 @@ public class SlashCommandManager
     private DiscordSocketClient client;
     private List<ISlashCommand> slashCommands= new List<ISlashCommand>();
     private IServiceProvider _serviceProvider;
-    public static SlashCommandManager Init(DiscordSocketClient client, IServiceProvider services)
+    public static SlashCommandManager Init(DiscordSocketClient client, 
+        IServiceProvider services,
+        IHttpClientFactory httpClientFactory
+    )
     {
         Instance.client = client;
         Instance._serviceProvider = services;

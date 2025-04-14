@@ -5,7 +5,7 @@ using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ASADiscordBot.SlashCommand.Command.Info;
+namespace ASADiscordBot.SlashCommand.Command.Info.Permission;
 
 public class DeopUserSlashCommand : ISlashCommand
 {
@@ -13,6 +13,7 @@ public class DeopUserSlashCommand : ISlashCommand
     public SlashCommandBuilder builder { get; set; }
     public string Name { get; } = "deop";
     public IServiceProvider ServiceProvider { get; set; }
+    public IHttpClientFactory HttpClientFactory { get; set; }
 
     public async Task<OperationResult<bool>> Init(IServiceProvider serviceProvider = null)
     {
@@ -22,6 +23,8 @@ public class DeopUserSlashCommand : ISlashCommand
         builder.WithName(Name);
         builder.WithDescription("Deop a user so he will loose Admin Privileges");
         builder.AddOption("user", ApplicationCommandOptionType.User, "The user you want to deop", isRequired: true);
+        
+        HttpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
 
         return new OperationResult<bool>()
         {

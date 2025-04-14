@@ -5,7 +5,7 @@ using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ASADiscordBot.SlashCommand.Command.Info;
+namespace ASADiscordBot.SlashCommand.Command.Info.Permission;
 
 public class MyInfoSlashCommand : ISlashCommand
 {
@@ -13,6 +13,7 @@ public class MyInfoSlashCommand : ISlashCommand
     public SlashCommandBuilder builder { get; set; }
     public string Name { get; } = "info";
     public IServiceProvider ServiceProvider { get; set; }
+    public IHttpClientFactory HttpClientFactory { get; set; }
 
     public async Task<OperationResult<bool>> Init(IServiceProvider serviceProvider = null)
     {
@@ -23,6 +24,8 @@ public class MyInfoSlashCommand : ISlashCommand
             Name);
         builder.WithDescription("Gives you the info on the permissions you have with the bot");
 
+        HttpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
+        
         return new OperationResult<bool>()
         {
             IsSuccess = true,
@@ -48,8 +51,9 @@ public class MyInfoSlashCommand : ISlashCommand
                     IsAdmin = false,
                     IsWhitelisted = false,
                     DateAdded = DateTime.Now,
-                    Password = "Aiki_Temp7!",
+                    Password = "Aiki_Temp7!"
                 });
+                context.SaveChanges();
                 
                 user = context.Identities.FirstOrDefault(x=>x.DiscordUserId == guildUser.Id);
             }

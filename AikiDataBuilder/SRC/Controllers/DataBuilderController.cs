@@ -86,6 +86,36 @@ public class DataBuilderController : ControllerBase
         _logger.LogInformation("Finished all Querries");
         return Ok(json);
     }
+    [HttpGet("/customers/format")]
+    public async Task<IActionResult> GetAllCustomerClient()
+    {
+        var customers = await _sherwebDbContext.Customers
+            .Include(c => c.Subscriptions)
+            .ThenInclude(s => s.CommitmentTerm)
+            .ThenInclude(x => x.CommittedMinimalQuantities)
+            .Include(c => c.Subscriptions)
+            .ThenInclude(s => s.CommitmentTerm)
+            .ThenInclude(x => x.RenewalConfiguration)
+            .Include(c => c.Subscriptions)
+            .ThenInclude(s => s.Fees)
+            .Include(c => c.ReceivableCharges)
+            .ThenInclude(s => s.Charges)
+            .Include(c => c.Platform)
+            .ThenInclude(s => s.PlatformDetails)
+            .Include(c => c.Platform)
+            .ThenInclude(s => s.MeterUsages)
+            .ToListAsync();
+
+        var json = JsonSerializer.Serialize(customers, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            ReferenceHandler = ReferenceHandler.IgnoreCycles, // Avoids issues with circular refs
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        });
+
+        return Content(json, "application/json");
+    }
+
     
 
     [HttpGet("/customers")]

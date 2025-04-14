@@ -13,6 +13,7 @@ public class ElevateUserSlashCommand : ISlashCommand
     public SlashCommandBuilder builder { get; set; }
     public string Name { get; } = "op";
     public IServiceProvider ServiceProvider { get; set; }
+    public IHttpClientFactory HttpClientFactory { get; set; }
 
     public async Task<OperationResult<bool>> Init(IServiceProvider serviceProvider = null)
     {
@@ -23,6 +24,7 @@ public class ElevateUserSlashCommand : ISlashCommand
         builder.WithDescription("Elevate a user so he can elevate other and access admin privileges");
         builder.AddOption("user", ApplicationCommandOptionType.User, "The user you want to elevate the roles",
             isRequired: true);
+        HttpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
 
         return new OperationResult<bool>()
         {

@@ -1,6 +1,7 @@
 ﻿using ASADiscordBot.Framework;
 using Discord;
 using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ASADiscordBot.SlashCommand.Command.Info;
 
@@ -10,6 +11,7 @@ public class HelloWorldSlashCommand : ISlashCommand
     public SlashCommandBuilder builder { get; set; }
     public string Name { get; } = "hello-world";
     public IServiceProvider ServiceProvider { get; set; }
+    public IHttpClientFactory HttpClientFactory { get; set; }
 
     public async Task<OperationResult<bool>> Init(IServiceProvider serviceProvider)
     {
@@ -28,7 +30,9 @@ public class HelloWorldSlashCommand : ISlashCommand
             .AddChoice("Excellent!", 5)
             .WithType(ApplicationCommandOptionType.Integer)
         );
-
+        
+        HttpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
+        
         return new OperationResult<bool>()
         {
             IsSuccess = true,
