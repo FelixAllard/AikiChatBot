@@ -165,7 +165,7 @@ public class DataBuilderController : ControllerBase
     }
 
 
-    [HttpGet("/payable-charges")]
+    [HttpGet("/payable-charges/format")]
     public async Task<IActionResult> GetAllPayableCharges()
     {
         var PayableCharges = await _sherwebDbContext.PayableCharge
@@ -175,29 +175,14 @@ public class DataBuilderController : ControllerBase
             .Include(c => c.Fees)
             .Include(c => c.Taxes)
             .ToListAsync();
-        var serializerSettings = new JsonSerializerSettings
+        var json = JsonSerializer.Serialize(PayableCharges, new JsonSerializerOptions
         {
-            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-            
-        };
+            WriteIndented = true,
+            ReferenceHandler = ReferenceHandler.IgnoreCycles, // Avoids issues with circular refs
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        });
 
-        var flattenedList = new List<Dictionary<string, object>>();
-
-        foreach (var customer in PayableCharges)
-        {
-            var json = JsonConvert.SerializeObject(customer, serializerSettings); // <-- 🔥 ignore loops
-            var jObject = JObject.Parse(json);
-
-            var flat = new Dictionary<string, object>();
-            Flatten(jObject, flat, null);
-
-            flattenedList.Add(flat);
-        }
-
-        _logger.LogInformation("Finished all Queries");
-
-        var compactJson = JsonConvert.SerializeObject(flattenedList, Formatting.None); // <-- FORCE minified
-        return Ok(compactJson);
+        return Content(json, "application/json");
     }
     
     

@@ -70,8 +70,6 @@ public class SherwebSlashCommand : ISlashCommand
                     response.EnsureSuccessStatusCode();
                     var content = response.Content;
                     
-                    
-                    
                     var json = content.ReadAsStringAsync().Result;
                     byte[] jsonBytes = Encoding.UTF8.GetBytes(json);
                     using var stream = new MemoryStream(jsonBytes);
@@ -84,11 +82,26 @@ public class SherwebSlashCommand : ISlashCommand
                         .WithColor(Color.Green)
                         .WithCurrentTimestamp();
                     
-                    await command.RespondWithFileAsync(stream, "customers.json", text: "Here's the customer data as JSON.", embed: responseDiscord.Build());
+                    await command.RespondWithFileAsync(stream, "customers.json", text: "Here's the customers data as JSON.", embed: responseDiscord.Build());
                 }
                 else if (getOrSet == "payable-charges")
                 {
-                    await command.RespondAsync($"We found the Payables Charges endpoint");
+                    var response = client.Send(new HttpRequestMessage(HttpMethod.Get, "/payable-charges/format"));
+                    response.EnsureSuccessStatusCode();
+                    var content = response.Content;
+                    
+                    var json = content.ReadAsStringAsync().Result;
+                    byte[] jsonBytes = Encoding.UTF8.GetBytes(json);
+                    using var stream = new MemoryStream(jsonBytes);
+                    
+                    EmbedBuilder responseDiscord = new EmbedBuilder()
+                        .WithAuthor(caller.ToString(), caller.GetAvatarUrl() ?? caller.GetDefaultAvatarUrl())
+                        .WithTitle("Success")
+                        .WithDescription("You will find all the payable-charges attached to this message!")
+                        .WithColor(Color.Green)
+                        .WithCurrentTimestamp();
+                    
+                    await command.RespondWithFileAsync(stream, "payable_charges.json", text: "Here's the customer data as JSON.", embed: responseDiscord.Build());
                 }
             }
                 break;
