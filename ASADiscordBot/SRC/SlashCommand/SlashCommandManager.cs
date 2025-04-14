@@ -72,7 +72,8 @@ public class SlashCommandManager
     }
     public async Task SlashCommandHandler(SocketSlashCommand command){
         var foundFunction = slashCommands.FirstOrDefault(x => x.Name == command.Data.Name);
+        SocketUser socketUser = command.User as SocketUser;
         
-        await foundFunction.HandleClientCall(command);
+        await foundFunction.HandleClientCall(command, socketUser);
     }
 }

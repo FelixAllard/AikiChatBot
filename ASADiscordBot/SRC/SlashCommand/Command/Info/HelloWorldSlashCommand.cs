@@ -41,7 +41,7 @@ public class HelloWorldSlashCommand : ISlashCommand
         };
     }
 
-    public async Task HandleClientCall(SocketSlashCommand command)
+    public async Task HandleClientCall(SocketSlashCommand command, SocketUser caller)
     {
         var guildUser = command.User ;
         List<string> differentHello = new List<string>()

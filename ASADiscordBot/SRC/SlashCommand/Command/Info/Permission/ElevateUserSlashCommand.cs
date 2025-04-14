@@ -34,7 +34,7 @@ public class ElevateUserSlashCommand : ISlashCommand
         };
     }
 
-    public async Task HandleClientCall(SocketSlashCommand command)
+    public async Task HandleClientCall(SocketSlashCommand command, SocketUser caller)
     {
         var guildUser = (SocketUser)command.Data.Options.First().Value;
         using (var scope = ServiceProvider.CreateScope())

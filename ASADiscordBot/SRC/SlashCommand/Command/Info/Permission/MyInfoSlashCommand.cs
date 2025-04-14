@@ -34,7 +34,7 @@ public class MyInfoSlashCommand : ISlashCommand
         };
     }
 
-    public async Task HandleClientCall(SocketSlashCommand command)
+    public async Task HandleClientCall(SocketSlashCommand command, SocketUser caller)
     {
         var guildUser = command.User;
         Identity user;

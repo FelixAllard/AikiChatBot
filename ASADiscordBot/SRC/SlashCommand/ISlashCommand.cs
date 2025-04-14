@@ -15,7 +15,7 @@ public interface ISlashCommand
 
 
     public Task<OperationResult<bool>> Init(IServiceProvider serviceProvider = null);
-    public Task HandleClientCall(SocketSlashCommand command);
+    public Task HandleClientCall(SocketSlashCommand command, SocketUser caller);
 
     public SlashCommandBuilder GetBuilder()
     {

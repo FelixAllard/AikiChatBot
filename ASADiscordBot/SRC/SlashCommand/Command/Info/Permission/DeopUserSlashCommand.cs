@@ -34,28 +34,13 @@ public class DeopUserSlashCommand : ISlashCommand
         };
     }
 
-    public async Task HandleClientCall(SocketSlashCommand command)
+    public async Task HandleClientCall(SocketSlashCommand command, SocketUser caller)
     {
         var guildUser = (SocketGuildUser)command.Data.Options.First().Value;
         using (var scope = ServiceProvider.CreateScope())
         {
             
-            
-            
             var context = scope.ServiceProvider.GetRequiredService<ASADbContext>();
-            var identity = context.Identities.FirstOrDefault(x => x.DiscordUserId == command.User.Id);
-
-            if (identity == null || !identity.IsAdmin)
-            {
-                await command.RespondAsync(embed: new EmbedBuilder()
-                    .WithAuthor(guildUser.ToString(), guildUser.GetAvatarUrl() ?? guildUser.GetDefaultAvatarUrl())
-                    .WithTitle("Unauthorized User")
-                    .WithDescription($"You are not allowed to use this command.")
-                    .WithColor(Color.Red)
-                    .WithCurrentTimestamp()
-                    .Build());
-            }
-
 
             var userToOp =  context.Identities.FirstOrDefault(x => x.DiscordUserId == guildUser.Id);
             if (userToOp == null)

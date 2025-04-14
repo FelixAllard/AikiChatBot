@@ -49,12 +49,45 @@ public class SherwebSlashCommand : ISlashCommand
         };
     }
 
-    public async Task HandleClientCall(SocketSlashCommand command)
+    public async Task HandleClientCall(SocketSlashCommand command, SocketUser caller1)
     {
         var client = HttpClientFactory.CreateClient();
         client = HttpClientFormatter.BuildAikiDataBuilderHttpClient(client).Result;
         // First lets extract our variables
         var caller = command.User;
+
+        using (var scope = ServiceProvider.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<ASADbContext>();
+            var identity = context.Identities.FirstOrDefault(x => x.DiscordUserId == command.User.Id);
+            if (identity == null)
+            {
+                context.Identities.Add(new Identity()
+                {
+                    DiscordUserId = caller.Id,
+                    Username = caller.Username,
+                    IsAdmin = false,
+                    IsWhitelisted = false,
+                    DateAdded = DateTime.Now,
+                    Password = "Aiki_Temp7!"
+                });
+                context.SaveChanges();
+                
+                identity = context.Identities.FirstOrDefault(x=>x.DiscordUserId == caller.Id);
+            }
+            if (!identity.IsWhitelisted)
+            {
+                EmbedBuilder responseDiscord = new EmbedBuilder()
+                    .WithAuthor(caller.ToString(), caller.GetAvatarUrl() ?? caller.GetDefaultAvatarUrl())
+                    .WithTitle("Unauthorized Access")
+                    .WithDescription("Please gain access by asking an admin for access")
+                    .WithColor(Color.Red)
+                    .WithCurrentTimestamp();
+                    
+                await command.RespondAsync(embed: responseDiscord.Build());
+            }
+        }
+
         var fieldName = command.Data.Options.First().Name;
         var getOrSet = command.Data.Options.First().Options.First().Name;
         
