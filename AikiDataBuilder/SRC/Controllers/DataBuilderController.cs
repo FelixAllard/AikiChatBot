@@ -163,6 +163,36 @@ public class DataBuilderController : ControllerBase
 
         return Ok(compactJson);
     }
+    [HttpGet("/customers/flattened")]
+    public async Task<IActionResult> GetAllCustomerFlat()
+    {
+        var customers = await _sherwebDbContext.Customers
+            .Include(c => c.Subscriptions)
+            .ThenInclude(s => s.CommitmentTerm)
+            .ThenInclude(x => x.CommittedMinimalQuantities)
+            .Include(c => c.Subscriptions)
+            .ThenInclude(s => s.CommitmentTerm)
+            .ThenInclude(x => x.RenewalConfiguration)
+            .Include(c => c.Subscriptions)
+            .ThenInclude(s => s.Fees)
+            .Include(c => c.ReceivableCharges)
+            .ThenInclude(s => s.Charges)
+            .Include(c => c.Platform)
+            .ThenInclude(s => s.PlatformDetails)
+            .Include(c => c.Platform)
+            .ThenInclude(s => s.MeterUsages)
+            .ToListAsync();
+
+        var serializerSettings = new JsonSerializerSettings
+        {
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+        };
+        _logger.LogInformation("Finished flattening customers with per-subscription breakdown.");
+
+        var compactJson = JsonConvert.SerializeObject(customers, Formatting.None);
+        return Ok(compactJson);
+    }
+
 
 
     [HttpGet("/payable-charges/format")]
