@@ -14,6 +14,17 @@ public class ASADbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<Identity>()
+            .Property(b => b.IsAdmin)
+            .HasDefaultValue(false);
+
+        modelBuilder.Entity<Identity>()
+            .Property(b => b.IsWhitelisted)
+            .HasDefaultValue(false);
+
+        modelBuilder.Entity<Identity>()
+            .Property(b => b.IsSuperAdmin)
+            .HasDefaultValue(false);
         
     }
 }

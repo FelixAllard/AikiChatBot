@@ -1,11 +1,15 @@
 ﻿using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using ASADiscordBot.Database;
 using ASADiscordBot.Database.Model;
 using ASADiscordBot.Framework;
+using ASADiscordBot.Model.Abacus;
 using ASADiscordBot.Utilities;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 
 namespace ASADiscordBot.SlashCommand.Command.Info.Abacus;
 
@@ -52,88 +56,105 @@ public class AbacusSlashCommand : ISlashCommand
         };
     }
 
-    public async Task HandleClientCall(SocketSlashCommand command, SocketUser caller1)
+    public async Task HandleClientCall(SocketSlashCommand command, SocketUser caller)
+{
+    await command.DeferAsync(); // Defer immediately to avoid timeout
+
+    // Get the user's question
+    var valueQuestion = command.Data.Options.First().Value?.ToString();
+
+    // Build the HttpClient
+    var client = HttpClientFactory.CreateClient();
+    client =  HttpClientFormatter.BuildAbacusHttpClient(client).Result; // Assume you make this method async
+
+    Identity user;
+    bool createNewChat = false;
+    string lastChatID = "";
+
+    using (var scope = ServiceProvider.CreateScope())
     {
-        var client = HttpClientFactory.CreateClient();
-        client = HttpClientFormatter.BuildAikiDataBuilderHttpClient(client).Result;
-        // First lets extract our variables
-        var caller = command.User;
+        var context = scope.ServiceProvider.GetRequiredService<ASADbContext>();
 
-        using (var scope = ServiceProvider.CreateScope())
-        {
-            var context = scope.ServiceProvider.GetRequiredService<ASADbContext>();
-            var identity = context.Identities.FirstOrDefault(x => x.DiscordUserId == command.User.Id);
-            if (identity == null)
-            {
-                context.Identities.Add(new Identity()
-                {
-                    DiscordUserId = caller.Id,
-                    Username = caller.Username,
-                    IsAdmin = false,
-                    IsWhitelisted = false,
-                    DateAdded = DateTime.Now,
-                    Password = "Aiki_Temp7!"
-                });
-                context.SaveChanges();
-                
-                identity = context.Identities.FirstOrDefault(x=>x.DiscordUserId == caller.Id);
-            }
-            if (!identity.IsWhitelisted)
-            {
-                EmbedBuilder responseDiscord = new EmbedBuilder()
-                    .WithAuthor(caller.ToString(), caller.GetAvatarUrl() ?? caller.GetDefaultAvatarUrl())
-                    .WithTitle("Unauthorized Access")
-                    .WithDescription("Please gain access by asking an admin for access")
-                    .WithColor(Color.Red)
-                    .WithCurrentTimestamp();
-                    
-                await command.RespondAsync(embed: responseDiscord.Build());
-            }
-        }
+        // Get the user and their last chat info
+        user = context.Identities.FirstOrDefault(x => x.DiscordUserId == command.User.Id);
+        lastChatID = user.LastChat;
+        DateTime lastChat = user.LastQuerry;
+        createNewChat = lastChat.AddHours(1) <= DateTime.UtcNow;
 
-        var fieldName = command.Data.Options.First().Name;
-        var getOrSet = command.Data.Options.First().Options.First().Name;
-        
-        // Since there is no value on a get command, we use the ? operator because "Options" can be null.
+        if (string.IsNullOrEmpty(user.LastChat))
+            createNewChat = false;
 
-        switch (fieldName)
-        {
-            case "create":
-                
-
-                    await command.RespondWithFileAsync("Hello World : Create");
-                break;
-            case "question":
-                var valueQuestion = command.Data.Options.First().Options.First().Value;
-                await command.RespondWithFileAsync("Hello World : Question" + valueQuestion);
-                break;
-        }
-
-            /*case "field-b":
-            {
-                if (getOrSet == "get")
-                {
-                    await command.RespondAsync($"The value of `field-b` is `{FieldB}`");
-                }
-                else if (getOrSet == "set")
-                {
-                    this.FieldB = (int)value;
-                    await command.RespondAsync($"`field-b` has been set to `{FieldB}`");
-                }
-            }
-                break;
-            case "field-c":
-            {
-                if (getOrSet == "get")
-                {
-                    await command.RespondAsync($"The value of `field-c` is `{FieldC}`");
-                }
-                else if (getOrSet == "set")
-                {
-                    this.FieldC = (bool)value;
-                    await command.RespondAsync($"`field-c` has been set to `{FieldC}`");
-                }
-            }
-                break;*/
+        user.LastQuerry = DateTime.UtcNow;
+        await context.SaveChangesAsync();
     }
+
+    // Prepare request DTO
+    var requestDto = new MessageAIRequestDTO
+    {
+        DeploymentId = Environment.GetEnvironmentVariable("DEPLOYMENT_ID"),
+        DeploymentToken = Environment.GetEnvironmentVariable("ABACUS_DEPLOYMENT_TOKEN"),
+        Message = valueQuestion,
+        DeploymentConversationId = createNewChat ? null : lastChatID
+    };
+
+    var json = JsonSerializer.Serialize(requestDto, new JsonSerializerOptions
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    });
+
+    var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+    Console.WriteLine("Sending Request");
+    var response = await client.PostAsync("https://apps.abacus.ai/api/v0/getConversationResponse", content);
+    Console.WriteLine("Received Answer");
+
+    if (response.IsSuccessStatusCode)
+    {
+        var jsonString = await response.Content.ReadAsStringAsync();
+        var messageResponse = JsonSerializer.Deserialize<MessageAIResponseDTO>(jsonString, new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        });
+
+        if (messageResponse?.Success == true)
+        {
+            var result = messageResponse.Result;
+
+            // Update user's chat ID
+            using (var scope = ServiceProvider.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<ASADbContext>();
+                user = context.Identities.FirstOrDefault(x => x.DiscordUserId == command.User.Id);
+                user.LastChat = result.Deployment_Conversation_Id;
+                await context.SaveChangesAsync();
+            }
+
+            // Get messages
+            var messageSent = result.Messages[result.Messages.Count - 2];
+            var messageReceived = result.Messages[result.Messages.Count - 1];
+
+            await command.FollowupAsync(
+                text: messageReceived.Text,
+                embed: new EmbedBuilder()
+                    .WithAuthor(caller.ToString(), caller.GetAvatarUrl() ?? caller.GetDefaultAvatarUrl())
+                    .WithTitle("Success in the query")
+                    .WithDescription($"Answer for the question: {messageSent.Text}")
+                    .WithColor(Color.Green)
+                    .WithCurrentTimestamp()
+                    .Build()
+            );
+        }
+        else
+        {
+            await command.FollowupAsync("There was a problem with the AI response.");
+        }
+    }
+    else
+    {
+        Console.WriteLine($"Request failed: {response.StatusCode}");
+        await command.FollowupAsync("The request to the AI failed. Please try again later.");
+    }
+}
+
 }
