@@ -4,6 +4,7 @@ using ASADiscordBot.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ASADiscordBot.Migrations
 {
     [DbContext(typeof(ASADbContext))]
-    partial class ASADbContextModelSnapshot : ModelSnapshot
+    [Migration("20250416145432_AddedChatSupport")]
+    partial class AddedChatSupport
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -43,6 +46,7 @@ namespace ASADiscordBot.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("LastChat")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("LastLogin")

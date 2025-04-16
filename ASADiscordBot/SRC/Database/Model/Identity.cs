@@ -12,9 +12,10 @@ public class Identity
     public string Password { get; set; }
     public bool IsAdmin { get; set; }
     public bool IsWhitelisted { get; set; }
+    public bool IsSuperAdmin { get; set; }
     public DateTime DateAdded { get; set; }
     public DateTime LastLogin { get; set; }
     public DateTime LastQuerry { get; set; }
-    public string LastChat { get; set; }
+    public string? LastChat { get; set; }
 
 }
