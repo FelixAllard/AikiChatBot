@@ -1,6 +1,7 @@
 ﻿using ASADiscordBot.Database;
 using ASADiscordBot.Database.Model;
 using ASADiscordBot.Framework;
+using ASADiscordBot.Model;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,6 +15,7 @@ public class MyInfoSlashCommand : ISlashCommand
     public string Name { get; } = "info";
     public IServiceProvider ServiceProvider { get; set; }
     public IHttpClientFactory HttpClientFactory { get; set; }
+    public PermissionLevel PermissionLevel { get; set; } = PermissionLevel.Open;
 
     public async Task<OperationResult<bool>> Init(IServiceProvider serviceProvider = null)
     {

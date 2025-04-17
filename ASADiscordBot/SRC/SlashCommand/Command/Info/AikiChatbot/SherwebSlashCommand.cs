@@ -2,6 +2,7 @@
 using ASADiscordBot.Database;
 using ASADiscordBot.Database.Model;
 using ASADiscordBot.Framework;
+using ASADiscordBot.Model;
 using ASADiscordBot.Utilities;
 using Discord;
 using Discord.WebSocket;
@@ -16,6 +17,7 @@ public class SherwebSlashCommand : ISlashCommand
     public string Name { get; } = "sherweb";
     public IServiceProvider ServiceProvider { get; set; }
     public IHttpClientFactory HttpClientFactory { get; set; }
+    public PermissionLevel PermissionLevel { get; set; } = PermissionLevel.Listed;
 
     public async Task<OperationResult<bool>> Init(IServiceProvider serviceProvider = null)
     {

@@ -1,6 +1,11 @@
-﻿using Discord.Net;
+﻿using ASADiscordBot.Database;
+using ASADiscordBot.Database.Model;
+using ASADiscordBot.Model;
+using Discord;
+using Discord.Net;
 using Discord.WebSocket;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 
 namespace ASADiscordBot.SlashCommand;
@@ -94,7 +99,87 @@ public class SlashCommandManager
     public async Task SlashCommandHandler(SocketSlashCommand command){
         var foundFunction = slashCommands.FirstOrDefault(x => x.Name == command.Data.Name);
         SocketUser socketUser = command.User as SocketUser;
+
+        Identity user;
+        using (var scope = _serviceProvider.CreateScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<ASADbContext>();
+            user = context.Identities.FirstOrDefault(x => x.DiscordUserId == socketUser.Id);
+            if (user == null)
+            {
+                user = context.Identities.Add(new Identity()
+                {
+                    DiscordUserId = socketUser.Id,
+                    Username = socketUser.Username,
+                    IsAdmin = false,
+                    IsWhitelisted = false,
+                    DateAdded = DateTime.Now,
+                    Password = "Aiki_Temp7!"
+                }).Entity;
+                context.SaveChanges();
+            }
+        }
+
+        switch (foundFunction.PermissionLevel)
+        {
+            case (PermissionLevel.Open):
+                await foundFunction.HandleClientCall(command, socketUser);
+                break;
+            case (PermissionLevel.Listed):
+                if (user.IsWhitelisted || user.IsAdmin || user.IsSuperAdmin)
+                    await foundFunction.HandleClientCall(command, socketUser);
+                else
+                    await command.RespondAsync(embed: new EmbedBuilder()
+                        .WithAuthor(socketUser.ToString(),
+                            socketUser.GetAvatarUrl() ?? socketUser.GetDefaultAvatarUrl())
+                        .WithTitle("Unauthorized User")
+                        .WithDescription($"You are not allowed to use this command. You need to be whitelisted!")
+                        .WithColor(Color.Red)
+                        .WithCurrentTimestamp()
+                        .Build()
+                    );
+                break;
+            case (PermissionLevel.Admin):
+                if (user.IsAdmin || user.IsSuperAdmin)
+                    await foundFunction.HandleClientCall(command, socketUser);
+                else
+                    await command.RespondAsync(embed: new EmbedBuilder()
+                        .WithAuthor(socketUser.ToString(),
+                            socketUser.GetAvatarUrl() ?? socketUser.GetDefaultAvatarUrl())
+                        .WithTitle("Unauthorized User")
+                        .WithDescription($"You are not allowed to use this command. You need to be an admin!")
+                        .WithColor(Color.Red)
+                        .WithCurrentTimestamp()
+                        .Build()
+                    );
+                break;
+            case (PermissionLevel.SuperAdmin):
+                if (user.IsSuperAdmin)
+                    await foundFunction.HandleClientCall(command, socketUser);
+                else
+                    await command.RespondAsync(embed: new EmbedBuilder()
+                        .WithAuthor(socketUser.ToString(),
+                            socketUser.GetAvatarUrl() ?? socketUser.GetDefaultAvatarUrl())
+                        .WithTitle("Unauthorized User")
+                        .WithDescription($"You are not allowed to use this command. Only Super Admin can Access")
+                        .WithColor(Color.Red)
+                        .WithCurrentTimestamp()
+                        .Build()
+                    );
+                break;
+            default:
+                await command.RespondAsync(embed: new EmbedBuilder()
+                    .WithAuthor(socketUser.ToString(),
+                        socketUser.GetAvatarUrl() ?? socketUser.GetDefaultAvatarUrl())
+                    .WithTitle("Undefined Permission Level")
+                    .WithDescription($"The command accessed does not imply which permission level allows for access")
+                    .WithColor(Color.Red)
+                    .WithCurrentTimestamp()
+                    .Build()
+                );
+                break;
+        }
         
-        await foundFunction.HandleClientCall(command, socketUser);
+        
     }
 }

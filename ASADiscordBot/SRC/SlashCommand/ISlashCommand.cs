@@ -1,4 +1,5 @@
 ﻿using ASADiscordBot.Framework;
+using ASADiscordBot.Model;
 using Discord;
 using Discord.WebSocket;
 
@@ -16,6 +17,10 @@ public interface ISlashCommand
     public IServiceProvider ServiceProvider { get; set; }
     
     public IHttpClientFactory HttpClientFactory { get; set; }
+    /// <summary>
+    /// Must be set!
+    /// </summary>
+    public PermissionLevel PermissionLevel { get; set; }
 
     /// <summary>
     /// Prepare the slash Command Builder so that it is easy to get it afterward,

@@ -1,4 +1,6 @@
-﻿namespace ASADiscordBot.Model.Abacus;
+﻿using System.Text.Json.Serialization;
+
+namespace ASADiscordBot.Model.Abacus;
 
 /// <summary>
 /// Root is what we use!
@@ -15,6 +17,7 @@ public class Result
     public List<SearchResultWrapper> Search_Results { get; set; }
     public Dictionary<string, object> Filter_Key_Values { get; set; }
     public object Score_Boost_For_Filters { get; set; }
+    [JsonPropertyName("deployment_conversation_id")]
     public string Deployment_Conversation_Id { get; set; }
 }
 

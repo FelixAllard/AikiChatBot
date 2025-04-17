@@ -1,4 +1,5 @@
 ﻿using ASADiscordBot.Framework;
+using ASADiscordBot.Model;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,6 +13,8 @@ public class HelloWorldSlashCommand : ISlashCommand
     public string Name { get; } = "hello-world";
     public IServiceProvider ServiceProvider { get; set; }
     public IHttpClientFactory HttpClientFactory { get; set; }
+    
+    public PermissionLevel PermissionLevel { get; set; } = PermissionLevel.Open;
 
     public async Task<OperationResult<bool>> Init(IServiceProvider serviceProvider)
     {

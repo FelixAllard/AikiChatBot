@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using ASADiscordBot.Database;
 using ASADiscordBot.Database.Model;
 using ASADiscordBot.Framework;
+using ASADiscordBot.Model;
 using ASADiscordBot.Model.Abacus;
 using ASADiscordBot.Utilities;
 using Discord;
@@ -20,6 +21,8 @@ public class AbacusSlashCommand : ISlashCommand
     public string Name { get; } = "ask";
     public IServiceProvider ServiceProvider { get; set; }
     public IHttpClientFactory HttpClientFactory { get; set; }
+
+    public PermissionLevel PermissionLevel { get; set; } = PermissionLevel.Listed;
 
     public async Task<OperationResult<bool>> Init(IServiceProvider serviceProvider = null)
     {
@@ -65,7 +68,7 @@ public class AbacusSlashCommand : ISlashCommand
 
     // Build the HttpClient
     var client = HttpClientFactory.CreateClient();
-    client =  HttpClientFormatter.BuildAbacusHttpClient(client).Result; // Assume you make this method async
+    client = HttpClientFormatter.BuildAbacusHttpClient(client).Result; // Assume you make this method async
 
     Identity user;
     bool createNewChat = false;
@@ -126,6 +129,7 @@ public class AbacusSlashCommand : ISlashCommand
             {
                 var context = scope.ServiceProvider.GetRequiredService<ASADbContext>();
                 user = context.Identities.FirstOrDefault(x => x.DiscordUserId == command.User.Id);
+                Console.WriteLine(result.Deployment_Conversation_Id);
                 user.LastChat = result.Deployment_Conversation_Id;
                 await context.SaveChangesAsync();
             }
@@ -134,16 +138,32 @@ public class AbacusSlashCommand : ISlashCommand
             var messageSent = result.Messages[result.Messages.Count - 2];
             var messageReceived = result.Messages[result.Messages.Count - 1];
 
-            await command.FollowupAsync(
-                text: messageReceived.Text,
-                embed: new EmbedBuilder()
-                    .WithAuthor(caller.ToString(), caller.GetAvatarUrl() ?? caller.GetDefaultAvatarUrl())
-                    .WithTitle("Success in the query")
-                    .WithDescription($"Answer for the question: {messageSent.Text}")
-                    .WithColor(Color.Green)
-                    .WithCurrentTimestamp()
-                    .Build()
-            );
+            // Split the message into 2000-character chunks
+            const int maxLength = 2000;
+            var fullText = messageReceived.Text;
+            var chunks = new List<string>();
+
+            for (int i = 0; i < fullText.Length; i += maxLength)
+            {
+                chunks.Add(fullText.Substring(i, Math.Min(maxLength, fullText.Length - i)));
+            }
+
+            // Send all but the last chunk as simple messages
+            for (int i = 0; i < chunks.Count - 1; i++)
+            {
+                await command.FollowupAsync(text: chunks[i]);
+            }
+
+            // Send the last chunk with the embed
+            var embed = new EmbedBuilder()
+                .WithAuthor(caller.ToString(), caller.GetAvatarUrl() ?? caller.GetDefaultAvatarUrl())
+                .WithTitle("Success in the query")
+                .WithDescription($"Answer for the question: {messageSent.Text}")
+                .WithColor(Color.Green)
+                .WithCurrentTimestamp()
+                .Build();
+
+            await command.FollowupAsync(text: chunks.Last(), embed: embed);
         }
         else
         {
@@ -156,5 +176,6 @@ public class AbacusSlashCommand : ISlashCommand
         await command.FollowupAsync("The request to the AI failed. Please try again later.");
     }
 }
+
 
 }
