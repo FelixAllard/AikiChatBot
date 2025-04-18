@@ -10,6 +10,10 @@ public enum PermissionLevel
     /// </summary>
     Open,
     /// <summary>
+    /// Can be anyone, but must be Login
+    /// </summary>
+    LogIn,
+    /// <summary>
     /// Those Whitelisted
     /// </summary>
     Listed,
