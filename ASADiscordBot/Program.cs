@@ -1,4 +1,5 @@
 ﻿using ASADiscordBot.Database;
+using ASADiscordBot.InteractionHandle;
 using ASADiscordBot.SlashCommand;
 using Discord;
 using Discord.WebSocket;
@@ -56,15 +57,23 @@ public class Program
         
         _client = new DiscordSocketClient(_serviceProvider.GetRequiredService<DiscordSocketConfig>());
 
+        // We init our managers
         SlashCommandManager.Init(
             _client, 
             _serviceProvider, 
             _serviceProvider.GetRequiredService<IHttpClientFactory>()
         );
+        InteractionManager.Init(
+            _client,
+            _serviceProvider,
+            _serviceProvider.GetRequiredService<IHttpClientFactory>()
+        );
         
         _client.Log += Log;
         _client.Ready += SlashCommandManager.Instance.Build();
+        _client.Ready += InteractionManager.Instance.Build();
         _client.SlashCommandExecuted += SlashCommandManager.Instance.SlashCommandHandler;
+        _client.InteractionCreated += InteractionManager.Instance.InteractionHandler;
         
 
 

@@ -44,22 +44,6 @@ public class MyInfoSlashCommand : ISlashCommand
         {
             var context = scope.ServiceProvider.GetRequiredService<ASADbContext>();
             user = context.Identities.FirstOrDefault(x=>x.DiscordUserId == guildUser.Id);
-            if (user == null)
-            {
-                context.Identities.Add(new Identity()
-                {
-                    DiscordUserId = guildUser.Id,
-                    Username = guildUser.Username,
-                    IsAdmin = false,
-                    IsWhitelisted = false,
-                    DateAdded = DateTime.Now,
-                    Password = "Aiki_Temp7!"
-                });
-                context.SaveChanges();
-                
-                user = context.Identities.FirstOrDefault(x=>x.DiscordUserId == guildUser.Id);
-            }
-        
 
             var embedBuiler = new EmbedBuilder()
                 .WithAuthor(guildUser.ToString(), guildUser.GetAvatarUrl() ?? guildUser.GetDefaultAvatarUrl())

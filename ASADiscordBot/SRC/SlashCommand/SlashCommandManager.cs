@@ -126,8 +126,26 @@ public class SlashCommandManager
                 await foundFunction.HandleClientCall(command, socketUser);
                 break;
             case (PermissionLevel.Listed):
+
+
                 if (user.IsWhitelisted || user.IsAdmin || user.IsSuperAdmin)
-                    await foundFunction.HandleClientCall(command, socketUser);
+                {
+                    if (user.LastLogin.AddDays(1) <= DateTime.Now)
+                    {
+                        await command.RespondAsync(embed: new EmbedBuilder()
+                            .WithAuthor(socketUser.ToString(),
+                                socketUser.GetAvatarUrl() ?? socketUser.GetDefaultAvatarUrl())
+                            .WithTitle("Not Logged In")
+                            .WithDescription($"You need to be Logged in to make this command! Please Login using /login")
+                            .WithColor(Color.Red)
+                            .WithCurrentTimestamp()
+                            .Build()
+                        );
+                        break;
+                    }
+                    await foundFunction.HandleClientCall(command, socketUser);  
+                }
+                    
                 else
                     await command.RespondAsync(embed: new EmbedBuilder()
                         .WithAuthor(socketUser.ToString(),
@@ -141,7 +159,23 @@ public class SlashCommandManager
                 break;
             case (PermissionLevel.Admin):
                 if (user.IsAdmin || user.IsSuperAdmin)
+                {
+                    if (user.LastLogin.AddDays(1) <= DateTime.Now)
+                    {
+                        await command.RespondAsync(embed: new EmbedBuilder()
+                            .WithAuthor(socketUser.ToString(),
+                                socketUser.GetAvatarUrl() ?? socketUser.GetDefaultAvatarUrl())
+                            .WithTitle("Not Logged In")
+                            .WithDescription($"You need to be Logged in to make this command! Please Login using /login")
+                            .WithColor(Color.Red)
+                            .WithCurrentTimestamp()
+                            .Build()
+                        );
+                        break;
+                    }
                     await foundFunction.HandleClientCall(command, socketUser);
+                }
+                    
                 else
                     await command.RespondAsync(embed: new EmbedBuilder()
                         .WithAuthor(socketUser.ToString(),
@@ -155,7 +189,23 @@ public class SlashCommandManager
                 break;
             case (PermissionLevel.SuperAdmin):
                 if (user.IsSuperAdmin)
+                {
+                    if (user.LastLogin.AddDays(1) <= DateTime.Now)
+                    {
+                        await command.RespondAsync(embed: new EmbedBuilder()
+                            .WithAuthor(socketUser.ToString(),
+                                socketUser.GetAvatarUrl() ?? socketUser.GetDefaultAvatarUrl())
+                            .WithTitle("Not Logged In")
+                            .WithDescription($"You need to be Logged in to make this command! Please Login using /login")
+                            .WithColor(Color.Red)
+                            .WithCurrentTimestamp()
+                            .Build()
+                        );
+                        break;
+                    }
                     await foundFunction.HandleClientCall(command, socketUser);
+                }
+                    
                 else
                     await command.RespondAsync(embed: new EmbedBuilder()
                         .WithAuthor(socketUser.ToString(),
