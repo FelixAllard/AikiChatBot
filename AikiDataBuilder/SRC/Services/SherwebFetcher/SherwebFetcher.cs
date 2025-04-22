@@ -98,10 +98,10 @@ public class SherwebFetcher : IApiFetcher
     public OperationResult<Dictionary<string, string>> GetCredentials()
     {
         
-        string baseUrl = _configuration["SherwebCredentials:BaseUrl"];
-        string subscriptionKey = _configuration["SherwebCredentials:SubscriptionKey"];
-        string clientId = _configuration["SherwebCredentials:ClientId"];
-        string clientSecret = _configuration["SherwebCredentials:ClientSecret"];
+        string baseUrl = _configuration["BASE_URL"];
+        string subscriptionKey = _configuration["SUBSCRIPTION_KEY"];
+        string clientId = _configuration["CLIENT_ID"];
+        string clientSecret = _configuration["CLIENT_SECRET"];
         if (
             string.IsNullOrWhiteSpace(baseUrl)
             || string.IsNullOrWhiteSpace(subscriptionKey)

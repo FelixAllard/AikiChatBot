@@ -4,6 +4,23 @@
     build:
       context: .
       dockerfile: AikiDataBuilder/Dockerfile
+    environment:
+      - DOTNET_RUNNING_IN_DOCKER=true
+      - DEFAULT_CONNECTION_DOCKER=Server=mssql,1433;Database=my_database;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;
+    env_file:
+      - .env
+
+  asadiscordbot:
+    image: asadiscordbot
+    build:
+      context: .
+      dockerfile: ASADiscordBot/Dockerfile
+    environment:
+      - DOTNET_RUNNING_IN_DOCKER=true
+      - DEFAULT_CONNECTION_DOCKER=Server=mssql,1433;Database=asa_database;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;
+    env_file:
+      - .env
+        
   mssql:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: mssql-container
@@ -14,11 +31,7 @@
       - "1433:1433"
     volumes:
       - mssql-data:/var/opt/mssql
-  asadiscordbot:
-    image: asadiscordbot
-    build:
-      context: .
-      dockerfile: ASADiscordBot/Dockerfile
+  
  
 volumes:
   mssql-data:

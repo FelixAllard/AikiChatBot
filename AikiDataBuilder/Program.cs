@@ -6,6 +6,7 @@ using AikiDataBuilder.Model.SystemResponse;
 using AikiDataBuilder.Services.DataFetcher;
 using AikiDataBuilder.Services.SherwebFetcher;
 using AikiDataBuilder.Services.Workers;
+using DotNetEnv;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -16,15 +17,19 @@ builder.Logging.ClearProviders();  // Clear default providers
 builder.Logging.AddConsole();      // Add Console logging explicitly
 builder.Services.AddSingleton<IConfiguration>(configuration);
 
-var test = new OperationResult<string>()
-{
-    Status = OperationResultStatus.Success,
-    Message = "WELL WELL WELL",
-    Result = "Hello World!"
-};
+
+if(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_DOCKER") != "true")
+    Env.Load("../../../../.env");
+
+
+string defaultConnection = Environment.GetEnvironmentVariable("DefaultConnection");
+//We replace the base url if we are running in docker
+if(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_DOCKER") == "true")
+    defaultConnection = Environment.GetEnvironmentVariable("DEFAULT_CONNECTION_DOCKER");
+
 // Add DbContext configuration
 builder.Services.AddDbContext<SherwebDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
+    options.UseSqlServer(defaultConnection,
             sqlOptions => sqlOptions.EnableRetryOnFailure(
                 maxRetryCount: 5,
                 maxRetryDelay: TimeSpan.FromSeconds(30),
@@ -69,6 +74,7 @@ builder.Services.AddScoped<SherwebRequestManager>();
 
 builder.Services.AddControllers();
 
+builder.WebHost.UseUrls("http://0.0.0.0:5173");
 
 var app = builder.Build();
 

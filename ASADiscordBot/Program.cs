@@ -22,6 +22,10 @@ public class Program
         {
             HandlerTimeout = 100000
         };
+        string defaultConnection = Environment.GetEnvironmentVariable("DefaultConnection");
+        //We replace the base url if we are running in docker
+        if(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_DOCKER") == "true")
+            defaultConnection = Environment.GetEnvironmentVariable("DEFAULT_CONNECTION_DOCKER");
         
         
         var collection = new ServiceCollection()
@@ -32,7 +36,7 @@ public class Program
             .AddDbContext<ASADbContext>(options =>
                 options.UseSqlServer(
                         // Read from env, or config file
-                        Environment.GetEnvironmentVariable("DEFAULT_CONNECTION_STRING"),
+                        defaultConnection,
                         sqlOptions => sqlOptions.EnableRetryOnFailure(
                             maxRetryCount: 5,
                             maxRetryDelay: TimeSpan.FromSeconds(30),
@@ -50,7 +54,8 @@ public class Program
     
     public static async Task Main()
     {
-        Env.Load("../../../../.env");
+        if(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_DOCKER") != "true")
+            Env.Load("../../../../.env");
         _serviceProvider = CreateProvider();
         //GOES TO THE ROOT OF THE SOLUTION
         var token = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
