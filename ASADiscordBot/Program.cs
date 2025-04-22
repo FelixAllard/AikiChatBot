@@ -14,7 +14,8 @@ public class Program
 {
     private static DiscordSocketClient _client;
     private static IServiceProvider _serviceProvider;
-    
+    public static string DefaultPassword;
+    public static ulong SuperUserId;
     static IServiceProvider CreateProvider()
     {
         //Discord Socket COnfigs
@@ -44,7 +45,10 @@ public class Program
                     )
                     .EnableSensitiveDataLogging()
             );
+        DefaultPassword = Environment.GetEnvironmentVariable("DEFAULT_PWD");  
+        string? superUserIdStr = Environment.GetEnvironmentVariable("SUPER_USER_ID");
 
+        SuperUserId = ulong.TryParse(superUserIdStr, out var parsedId) ? parsedId : 1058211207678537748;
         
         
         

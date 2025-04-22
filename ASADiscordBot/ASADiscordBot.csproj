@@ -52,4 +52,8 @@
       <Folder Include="SRC\Utilities\Annotations\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Remove="SRC\SlashCommand\Command\Info\Abacus\RefreshDataSlashCommand.cs" />
+    </ItemGroup>
+
 </Project>

@@ -99,6 +99,7 @@ public class SlashCommandManager
     public async Task SlashCommandHandler(SocketSlashCommand command){
         var foundFunction = slashCommands.FirstOrDefault(x => x.Name == command.Data.Name);
         SocketUser socketUser = command.User as SocketUser;
+        
 
         Identity user;
         using (var scope = _serviceProvider.CreateScope())
@@ -116,8 +117,13 @@ public class SlashCommandManager
                     DateAdded = DateTime.Now,
                     Password = "Aiki_Temp7!"
                 }).Entity;
+                if (socketUser.Id == Program.SuperUserId)
+                {
+            
+                }
                 context.SaveChanges();
             }
+            
         }
 
         switch (foundFunction.PermissionLevel)
