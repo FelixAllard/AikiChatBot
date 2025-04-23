@@ -65,6 +65,10 @@ public class InteractionManager
             await Task.WhenAll(buildTasks); // Await all builds
         };
     }
+    /// <summary>
+    /// This function will be called whenever an interaction is mad on discord
+    /// </summary>
+    /// <param name="socketInteraction">Interaction information</param>
     
     public async Task InteractionHandler(SocketInteraction socketInteraction){
         

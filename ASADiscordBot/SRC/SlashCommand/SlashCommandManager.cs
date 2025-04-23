@@ -97,10 +97,13 @@ public class SlashCommandManager
     /// </summary>
     /// <param name="command">The command provided by the Discord API</param>
     public async Task SlashCommandHandler(SocketSlashCommand command){
+        // Find the matching function name
         var foundFunction = slashCommands.FirstOrDefault(x => x.Name == command.Data.Name);
+        
+        // Find the user that called the command
         SocketUser socketUser = command.User as SocketUser;
         
-
+        //Find the same user, from our database, and if it doesn't exist we create it
         Identity user;
         using (var scope = _serviceProvider.CreateScope())
         {
@@ -117,21 +120,25 @@ public class SlashCommandManager
                     DateAdded = DateTime.Now,
                     Password = "Aiki_Temp7!"
                 }).Entity;
+                // If it is the defined superuser, we gave it superuser rights
                 if (socketUser.Id == Program.SuperUserId)
                 {
-            
+                    user.IsSuperAdmin = true;
                 }
                 context.SaveChanges();
             }
             
         }
-
+        // We use the permission level and see what we do depending on it
         switch (foundFunction.PermissionLevel)
         {
+            // Open is for anybody
             case (PermissionLevel.Open):
                 await foundFunction.HandleClientCall(command, socketUser);
                 break;
+            // Login requires to be logged in
             case (PermissionLevel.LogIn):
+                // If it's been more than a day, then require a new login
                 if (user.LastLogin.AddDays(1) <= DateTime.Now)
                 {
                     await command.RespondAsync(embed: new EmbedBuilder()
@@ -145,9 +152,11 @@ public class SlashCommandManager
                     );
                     break;
                 }
-                await foundFunction.HandleClientCall(command, socketUser);  
+
+                await foundFunction.HandleClientCall(command, socketUser);
 
                 break;
+            // Need to have been whitelisted
             case (PermissionLevel.Listed):
 
 
@@ -159,16 +168,18 @@ public class SlashCommandManager
                             .WithAuthor(socketUser.ToString(),
                                 socketUser.GetAvatarUrl() ?? socketUser.GetDefaultAvatarUrl())
                             .WithTitle("Not Logged In")
-                            .WithDescription($"You need to be Logged in to make this command! Please Login using /login")
+                            .WithDescription(
+                                $"You need to be Logged in to make this command! Please Login using /login")
                             .WithColor(Color.Red)
                             .WithCurrentTimestamp()
                             .Build()
                         );
                         break;
                     }
-                    await foundFunction.HandleClientCall(command, socketUser);  
+
+                    await foundFunction.HandleClientCall(command, socketUser);
                 }
-                    
+
                 else
                     await command.RespondAsync(embed: new EmbedBuilder()
                         .WithAuthor(socketUser.ToString(),
@@ -179,7 +190,9 @@ public class SlashCommandManager
                         .WithCurrentTimestamp()
                         .Build()
                     );
+
                 break;
+            // Needs to be an admin
             case (PermissionLevel.Admin):
                 if (user.IsAdmin || user.IsSuperAdmin)
                 {
@@ -189,16 +202,18 @@ public class SlashCommandManager
                             .WithAuthor(socketUser.ToString(),
                                 socketUser.GetAvatarUrl() ?? socketUser.GetDefaultAvatarUrl())
                             .WithTitle("Not Logged In")
-                            .WithDescription($"You need to be Logged in to make this command! Please Login using /login")
+                            .WithDescription(
+                                $"You need to be Logged in to make this command! Please Login using /login")
                             .WithColor(Color.Red)
                             .WithCurrentTimestamp()
                             .Build()
                         );
                         break;
                     }
+
                     await foundFunction.HandleClientCall(command, socketUser);
                 }
-                    
+
                 else
                     await command.RespondAsync(embed: new EmbedBuilder()
                         .WithAuthor(socketUser.ToString(),
@@ -209,7 +224,9 @@ public class SlashCommandManager
                         .WithCurrentTimestamp()
                         .Build()
                     );
+
                 break;
+            // Needs to be the superadmin
             case (PermissionLevel.SuperAdmin):
                 if (user.IsSuperAdmin)
                 {
@@ -219,16 +236,18 @@ public class SlashCommandManager
                             .WithAuthor(socketUser.ToString(),
                                 socketUser.GetAvatarUrl() ?? socketUser.GetDefaultAvatarUrl())
                             .WithTitle("Not Logged In")
-                            .WithDescription($"You need to be Logged in to make this command! Please Login using /login")
+                            .WithDescription(
+                                $"You need to be Logged in to make this command! Please Login using /login")
                             .WithColor(Color.Red)
                             .WithCurrentTimestamp()
                             .Build()
                         );
                         break;
                     }
+
                     await foundFunction.HandleClientCall(command, socketUser);
                 }
-                    
+
                 else
                     await command.RespondAsync(embed: new EmbedBuilder()
                         .WithAuthor(socketUser.ToString(),
@@ -239,8 +258,10 @@ public class SlashCommandManager
                         .WithCurrentTimestamp()
                         .Build()
                     );
+
                 break;
             default:
+                // If the permission level is not set, it is bound to end up here
                 await command.RespondAsync(embed: new EmbedBuilder()
                     .WithAuthor(socketUser.ToString(),
                         socketUser.GetAvatarUrl() ?? socketUser.GetDefaultAvatarUrl())
@@ -252,7 +273,5 @@ public class SlashCommandManager
                 );
                 break;
         }
-        
-        
     }
 }

@@ -55,7 +55,9 @@ public class Program
         //...
         return collection.BuildServiceProvider();
     }
-    
+    /// <summary>
+    /// Program head
+    /// </summary>
     public static async Task Main()
     {
         if(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_DOCKER") != "true")

@@ -4,13 +4,19 @@ namespace ASADiscordBot.Model.Abacus;
 
 /// <summary>
 /// Root is what we use!
+/// 
 /// </summary>
 public class MessageAIResponseDTO
 {
+    /// <summary>
+    /// If the operation was a success or not
+    /// </summary>
     public bool Success { get; set; }
     public Result Result { get; set; }
 }
-
+/// <summary>
+/// The result containing the information
+/// </summary>
 public class Result
 {
     public List<Message> Messages { get; set; }
@@ -20,6 +26,10 @@ public class Result
     [JsonPropertyName("deployment_conversation_id")]
     public string Deployment_Conversation_Id { get; set; }
 }
+/// <summary>
+/// One message interaction
+/// The Is user is wether the message was by the ai or the user
+/// </summary>
 
 public class Message
 {
