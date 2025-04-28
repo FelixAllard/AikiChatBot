@@ -103,51 +103,6 @@ public class SherwebWorkers : IHttpWorker
         };
     }
 
-    
-
-    /*public async Task<OperationResult<string>> HandleUnAuthorized(Request request, float timeout)
-    {
-        string bearerToken = "";
-        try
-        {
-            var response = _authentificationRequest.SendRequest();
-            if (response.Result.Status == OperationResultStatus.Failed)
-                return await Task.FromResult(new OperationResult<string>()
-                {
-                    Status = OperationResultStatus.Failed,
-                    Message = "Unable to finish operation because critical error happened in the the request",
-                    Exception = response.Exception,
-                    Result = response.Result.Result.ToString()
-                    
-                });
-            var jsonObject = await response.Result.Result.ReadFromJsonAsync<Dictionary<string, object>>();
-            //Retrieving the token from the Authorization string
-            bearerToken = jsonObject?["access_token"]?.ToString();
-            if(bearerToken.IsNullOrEmpty())
-                throw new InvalidCastException("Unable to finish operation because critical " +
-                                               "error happened in the the request. " +
-                                               "The json gotten back from the api was invalid");
-        }
-        catch (Exception e)
-        {
-            return await Task.FromResult(new OperationResult<string>()
-            {
-                Status = OperationResultStatus.Failed,
-                Message = "Unable to finish operation because critical error happened in the the request",
-                Exception = e,
-                Result = bearerToken
-                    
-            });
-        }
-        return await Task.FromResult(new OperationResult<string>()
-        {
-            Status = OperationResultStatus.Success,
-            Result = bearerToken,
-            Message = "Successfully Generated New Bearer Token",
-        });
-    }*/
-    
-
     public OperationResult<string> CleanUpWorker()
     {
         authorizationTryCount = 0;

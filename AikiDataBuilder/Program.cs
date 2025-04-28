@@ -21,7 +21,7 @@ builder.Services.AddSingleton<IConfiguration>(configuration);
 if(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_DOCKER") != "true")
     Env.Load("../../../../.env");
 
-
+Console.WriteLine(Environment.GetEnvironmentVariable("BASE_URL"));
 string defaultConnection = Environment.GetEnvironmentVariable("DefaultConnection");
 //We replace the base url if we are running in docker
 if(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_DOCKER") == "true")

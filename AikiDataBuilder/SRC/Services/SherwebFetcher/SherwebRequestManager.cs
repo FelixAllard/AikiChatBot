@@ -143,10 +143,10 @@ public class SherwebRequestManager : IRequestManager
     public OperationResult<Dictionary<string, string>> GetCredentials()
     {
         
-        string baseUrl = Configuration["SherwebCredentials:BaseUrl"];
-        string subscriptionKey = Configuration["SherwebCredentials:SubscriptionKey"];
-        string clientId = Configuration["SherwebCredentials:ClientId"];
-        string clientSecret = Configuration["SherwebCredentials:ClientSecret"];
+        string baseUrl = Environment.GetEnvironmentVariable("BASE_URL");
+        string subscriptionKey = Environment.GetEnvironmentVariable("SUBSCRIPTION_KEY");
+        string clientId = Environment.GetEnvironmentVariable("CLIENT_ID");
+        string clientSecret = Environment.GetEnvironmentVariable("CLIENT_SECRET");
         if (
             string.IsNullOrWhiteSpace(baseUrl)
             || string.IsNullOrWhiteSpace(subscriptionKey)
@@ -164,7 +164,7 @@ public class SherwebRequestManager : IRequestManager
                     { "ClientSecret", clientSecret },
                 },
                 Exception = new FormatException("The credentials fetch failed for one or more values"),
-                Message = "Make sure the credentials are filled in the appsettings.json file.",
+                Message = "Make sure the credentials are filled in the .env file.",
                 Status = OperationResultStatus.Critical
             };
         }
@@ -231,7 +231,6 @@ public class SherwebRequestManager : IRequestManager
     private readonly ConcurrentQueue<Request> _requestQueue = new ConcurrentQueue<Request>();
     public async Task<OperationResult<(bool hasRequest, Request? request, bool shouldStop)>> GetNextRequest()
     {
-        //TODO never returns a should stop and as such will never result in a End
         if (_requestQueue.IsEmpty)
         {
             if (noMoreRequest)
@@ -643,78 +642,4 @@ public class SherwebRequestManager : IRequestManager
             Result = ServiceProvider.GetRequiredService<Request>()
         };
     }
-
-    
-    
-    
-    /*public async Task<OperationResult<(bool hasRequest, Request? request, bool shouldStop)>> QueueNextRequests()
-    {
-        if(AllWorkersAvailable)
-            awaitingOtherWorkers = false;
-        if (awaitingOtherWorkers)
-            return new OperationResult<(bool hasRequest, Request? request, bool shouldStop)>()
-            {
-                Message = $"Currently awaiting all workers to be available",
-                Status = OperationResultStatus.PartialSuccess,
-                Result = (
-                    false, 
-                    null, 
-                    false
-                )
-            };
-        // Here we will put all the steps inside a switch
-        switch (retrievalStep[0])
-        {
-            case 0:
-                var getAllCustomerRequest = new GetAllCustomers(
-                    HttpClient,
-                    SherwebDbContext
-                );
-                getAllCustomerRequest.SetBearerToken(bearerToken);
-                getAllCustomerRequest.SetHeaderVariables(new Dictionary<string, string>()
-                {
-                    {
-                        "Ocp-Apim-Subscription-Key", 
-                        Keys[
-                            "SubscriptionKey"
-                        ]
-                    }
-                });
-                retrievalStep[0] = 1;
-                return await Task.FromResult(new OperationResult<(bool hasRequest, Request? request, bool shouldStop)>()
-                {
-                    Result = (
-                        true, 
-                        getAllCustomerRequest,
-                        false
-                    ),
-                    Message = "Get all customers successfully sent",
-                    Status = OperationResultStatus.Success
-                });
-            default:
-                return await Task.FromResult(new OperationResult<(bool hasRequest, Request? request, bool shouldStop)>()
-                {
-                    Message = "Not Finding a request to give back",
-                    Result =(
-                    true,
-                    null,
-                    true
-                    ),
-                    Status = OperationResultStatus.Success
-                    
-                });
-        }
-
-        return await Task.FromResult(new OperationResult<(bool hasRequest, Request? request, bool shouldStop)>()
-        {
-            Message = $"Finished all steps of retrieval from sherweb. Stopping retrieval",
-            Status = OperationResultStatus.Success,
-            Result = (
-                false, 
-                null!,
-                true
-            )
-        });
-    }*/
-    
 }
