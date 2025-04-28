@@ -1,44 +1,23 @@
-﻿# Base image
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-ARG APP_UID=0
+﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
-EXPOSE 5173
 
-# Build and publish stage with SDK
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
-WORKDIR /src/AikiDataBuilder
+WORKDIR /src
+COPY ["AikiDataBuilder/AikiDataBuilder.csproj", "AikiDataBuilder/"]
+RUN dotnet restore "AikiDataBuilder/AikiDataBuilder.csproj"
+COPY . .
+WORKDIR "/src/AikiDataBuilder"
+RUN dotnet build "AikiDataBuilder.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-# Copy csproj and restore
-COPY AikiDataBuilder/AikiDataBuilder.csproj ./
-RUN dotnet restore "AikiDataBuilder.csproj"
-
-# Install EF CLI
-RUN dotnet tool install --global dotnet-ef
-ENV PATH="$PATH:/root/.dotnet/tools"
-
-# Copy rest of the source
-COPY AikiDataBuilder/. ./
-
-# ✅ Build the project first
-RUN dotnet build "AikiDataBuilder.csproj" -c $BUILD_CONFIGURATION
-
-# ✅ Now apply migrations (the deps.json exists now)
-RUN dotnet ef database update --project AikiDataBuilder.csproj --startup-project AikiDataBuilder.csproj
-
-
-# Build and publish
+FROM build AS publish
+ARG BUILD_CONFIGURATION=Release
 RUN dotnet publish "AikiDataBuilder.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
-# Final image: only ASP.NET + published app
 FROM base AS final
 WORKDIR /app
-
-# Copy published output
-COPY --from=build /app/publish ./
-
-# Set entrypoint
+COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "AikiDataBuilder.dll"]

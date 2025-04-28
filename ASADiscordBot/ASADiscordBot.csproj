@@ -9,12 +9,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Content Include="..\.dockerignore">
-        <Link>.dockerignore</Link>
-      </Content>
-    </ItemGroup>
-
-    <ItemGroup>
       <PackageReference Include="Discord.Addons.Interactive" Version="2.0.0" />
       <PackageReference Include="Discord.Net" Version="3.17.2" />
       <PackageReference Include="Discord.Net-Anarchy" Version="1.9.1" />
@@ -54,6 +48,12 @@
 
     <ItemGroup>
       <Compile Remove="SRC\SlashCommand\Command\Info\Abacus\RefreshDataSlashCommand.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
     </ItemGroup>
 
 </Project>

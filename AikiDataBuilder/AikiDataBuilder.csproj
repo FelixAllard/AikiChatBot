@@ -36,9 +36,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\.dockerignore">
-        <Link>.dockerignore</Link>
-      </Content>
       <Content Remove="SRC\Model\Sherweb\Database\PayableCharges\**" />
       <Content Remove="SRC\Model\Sherweb\Database\Platform\**" />
       <Content Remove="SRC\Model\Sherweb\Database\Customer\**" />
@@ -46,6 +43,9 @@
         <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </Content>
+      <Content Include="..\.dockerignore">
+        <Link>.dockerignore</Link>
       </Content>
     </ItemGroup>
 
