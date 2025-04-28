@@ -2,6 +2,14 @@
 
 echo "🔍 Looking for EF Core projects with migrations..."
 
+# Build the entire solution
+echo "🛠️  Building the solution..."
+dotnet build
+if [ $? -ne 0 ]; then
+    echo "❌ Build failed. Aborting migration application."
+    exit 1
+fi
+
 # Find all .csproj files that have a Migrations folder next to them
 for csproj in $(find . -name '*.csproj'); do
     proj_dir=$(dirname "$csproj")
@@ -12,7 +20,7 @@ for csproj in $(find . -name '*.csproj'); do
 
         # Apply migrations
         echo "⚙️  Applying migrations in $proj_dir..."
-        dotnet ef database update --no-build
+        dotnet ef database update
 
         popd > /dev/null
     else
@@ -21,3 +29,4 @@ for csproj in $(find . -name '*.csproj'); do
 done
 
 echo "✅ Done applying all migrations."
+pause
