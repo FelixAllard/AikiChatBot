@@ -627,7 +627,6 @@ public class SherwebRequestManager : IRequestManager
 
                             });
                 }
-
                 retrievalStep[0] += 1 ;
         }
 

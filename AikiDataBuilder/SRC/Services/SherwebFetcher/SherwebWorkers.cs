@@ -39,7 +39,6 @@ public class SherwebWorkers : IHttpWorker
             Message = "Preparations are complete! Worker is now operational",
         });
     }
-
     public async Task<OperationResult<string>> SendRequest(Request request, float timeout = 3000)
     {
         _currentRequest = request;

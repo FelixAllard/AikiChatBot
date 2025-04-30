@@ -29,4 +29,4 @@ for csproj in $(find . -name '*.csproj'); do
 done
 
 echo "✅ Done applying all migrations."
-pause
+read -p "Press enter to continue..."

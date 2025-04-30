@@ -60,8 +60,29 @@ public class Program
     /// </summary>
     public static async Task Main()
     {
-        if(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_DOCKER") != "true")
-            Env.Load("../../../../.env");
+        //If outside docker, try the different possible location for the .env file
+        if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_DOCKER") != "true")
+        {
+            string[] pathsToTry = new[]
+            {
+                "../../../../.env",               // Development Path
+                "../.env" // Deployment path
+            };
+            bool foundEnv = false;
+            foreach (var path in pathsToTry)
+            {
+                if (File.Exists(path))
+                {
+                    foundEnv = true;
+                    Env.Load(path);
+                    Console.WriteLine($"✅ .env loaded from: {path}");
+                }
+            }
+            if(!foundEnv)
+                throw new FileNotFoundException("❌ .env file not found in any known location.");
+        }
+        
+
         _serviceProvider = CreateProvider();
         //GOES TO THE ROOT OF THE SOLUTION
         var token = Environment.GetEnvironmentVariable("DISCORD_TOKEN");

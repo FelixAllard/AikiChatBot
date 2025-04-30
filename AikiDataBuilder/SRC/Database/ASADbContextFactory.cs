@@ -27,6 +27,7 @@ namespace AikiDataBuilder.Database
             optionsBuilder.UseSqlServer(connectionString);
 
             return new SherwebDbContext(optionsBuilder.Options);
+            
         }
     }
 }

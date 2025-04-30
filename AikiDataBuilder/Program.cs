@@ -18,8 +18,27 @@ builder.Logging.AddConsole();      // Add Console logging explicitly
 builder.Services.AddSingleton<IConfiguration>(configuration);
 
 
-if(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_DOCKER") != "true")
-    Env.Load("../../../../.env");
+string[] pathsToTry = new[]
+{
+    "../../../../.env",               // Primary path
+    "../.env"
+};
+if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_DOCKER") != "true")
+{
+    bool foundEnv = false;
+    foreach (var path in pathsToTry)
+    {
+        if (File.Exists(path))
+        {
+            foundEnv = true;
+            Env.Load(path);
+            Console.WriteLine($"✅ .env loaded from: {path}");
+            return;
+        }
+    }
+    if(!foundEnv)
+        throw new FileNotFoundException("❌ .env file not found in any known location.");
+}
 
 Console.WriteLine(Environment.GetEnvironmentVariable("BASE_URL"));
 string defaultConnection = Environment.GetEnvironmentVariable("DefaultConnection");
