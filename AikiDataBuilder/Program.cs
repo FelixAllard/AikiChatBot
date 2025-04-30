@@ -20,8 +20,9 @@ builder.Services.AddSingleton<IConfiguration>(configuration);
 
 string[] pathsToTry = new[]
 {
-    "../../../../.env",               // Primary path
-    "../.env"
+    "../../../../.env",               // Development Path
+    "../.env", // Deployment path
+    "./.env" //Fast  run path
 };
 if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_DOCKER") != "true")
 {

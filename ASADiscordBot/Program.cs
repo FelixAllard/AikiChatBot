@@ -66,7 +66,8 @@ public class Program
             string[] pathsToTry = new[]
             {
                 "../../../../.env",               // Development Path
-                "../.env" // Deployment path
+                "../.env", // Deployment path
+                "./.env" //Fast  run path
             };
             bool foundEnv = false;
             foreach (var path in pathsToTry)
